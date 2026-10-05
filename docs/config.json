@@ -1,0 +1,37 @@
+{
+    "groups": [{
+        "name": "General",
+        "pages": {
+            "index": "Intro",
+            "blueprintsjs": "blueprints.js"
+        }
+    }, {
+        "name": "Blueprints",
+        "pages": {
+            "blueprints/NativeToken": "NativeToken",
+            "blueprints/ERC20": "ERC20",
+            "blueprints/Basket": "Basket",
+            "blueprints/ComposablePrediction": "ComposablePrediction",
+            "blueprints/WithMetadata": "WithMetadata",
+            "blueprints/UnsupportedBlueprint": "UnsupportedBlueprint",
+            "blueprints/UnknownBlueprint": "UnknownBlueprint"
+        }
+    }, {
+        "name": "Oracles",
+        "pages": {
+            "oracles/ConstantOracle": "ConstantOracle",
+            "oracles/MultisigOracle": "MultisigOracle",
+            "oracles/UnsupportedOracle": "UnsupportedOracle"
+        }
+    }],
+    "logo": "logo.svg",
+    "theme": {
+        "backgroundPrimary": "#262626",
+        "backgroundSecondary": "#1d1d1d",
+        "colorPrimary": "#ffffff",
+        "colorSecondary": "#bfbfbf",
+        "accent": "#2563eb",
+        "borderPrimary": "#3c3c3c"
+    },
+    "url": "https://docs.blueprints.finance/"
+}

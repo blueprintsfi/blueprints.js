@@ -1,0 +1,54 @@
+{
+    "name": "@blueprintsfi/blueprints.js",
+    "description": "Free and open-source TypeScript library for working with Blueprints",
+    "version": "1.0.0",
+    "devDependencies": {
+        "@types/bun": "latest",
+        "typescript": "^5.7"
+    },
+    "dependencies": {
+        "@noble/hashes": "^2.0.1"
+    },
+    "scripts": {
+        "build": "rm -rf dist && bun build.ts && tsc -p tsconfig.build.json && cp -R dist/types/. dist/types-cjs && echo '{\"type\":\"commonjs\"}' > dist/types-cjs/package.json",
+        "typecheck": "tsc --noEmit",
+        "prepack": "bun run typecheck && bun run build"
+    },
+    "main": "./dist/blueprints.cjs",
+    "module": "./dist/blueprints.js",
+    "types": "./dist/types/blueprints.d.ts",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": {
+                "types": "./dist/types/blueprints.d.ts",
+                "default": "./dist/blueprints.js"
+            },
+            "require": {
+                "types": "./dist/types-cjs/blueprints.d.ts",
+                "default": "./dist/blueprints.cjs"
+            }
+        }
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "type": "module",
+    "homepage": "https://blueprints.finance/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/blueprintsfi/blueprints.js.git"
+    },
+    "bugs": {
+        "url": "https://github.com/blueprintsfi/blueprints.js/issues"
+    },
+    "engines": {
+        "node": ">=20.19.0"
+    },
+    "keywords": ["defi", "evm"],
+    "publishConfig": {
+        "access": "public"
+    },
+    "license": "MIT"
+}

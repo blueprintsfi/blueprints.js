@@ -43,6 +43,16 @@ from simple primitives.
   that describes the position. Everything else (managing balances, transfers,
   approvals, etc.) is already handled.
 
+## Testnet
+
+The Blueprints team hosts a public testnet that can be used to test
+products built on Blueprints.
+
+- Chain ID: `0x42504649` (the ASCII code points of `BPFI` are `0x42`, `0x50`,
+  `0x46`, and `0x49`)
+- RPC URL: https://testnet-rpc.blueprints.finance/
+- Faucet: https://testnet-faucet.blueprints.finance/
+
 ## Architecture overview
 
 This section provides an overview of the Blueprints architecture. Consult the

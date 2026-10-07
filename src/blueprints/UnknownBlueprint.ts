@@ -22,7 +22,6 @@ export default class UnknownBlueprint extends Token {
         this.params = paramsType.deepCopy(params);
     }
 
-
     protected override calculateInternalTokenId(): never {
         throw new Error("Internal token id is unknown");
     }

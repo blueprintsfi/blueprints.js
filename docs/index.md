@@ -77,14 +77,14 @@ For example, the `Basket` Blueprint allows the following actions:
 - `take` some tokens and `mint` a token which represents a basket of them,
 - `burn` a token representing a basket of tokens and `give` those tokens.
 
-## Blueprint Manager
+### Blueprint Manager
 
 **Blueprint Manager** is a smart contract which keeps track of balances. Each
 address is split into $2^{256}$ subaccounts which is oftentimes helpful.
 Blueprint Manager also implements flash accounting – the ability to spend tokens
 one will receive *later in the same transaction*.
 
-## Oracles
+### Oracles
 
 An oracle feed is defined by the oracle address and a 256-bit feed id. The
 interpretation of the feed id is left to the operator of the oracle. A feed

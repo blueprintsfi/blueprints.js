@@ -16,7 +16,7 @@ export default class WithMetadata extends Token {
     override params: WithMetadataParams;
 
     constructor(amount: Fraction | bigint, params: WithMetadataParams) {
-        super(amount, params.token.weiPerUnit);
+        super(amount, params.token.weiAmount);
         this.params = paramsType.deepCopy(params);
     }
 

@@ -157,9 +157,9 @@ export class Array<T> implements Type<T[]> {
         let result = "[";
         for (let i = 0; i < value.length; i++) {
             result += this.subtype.stringify(value[i]!, type);
-            result += i === value.length - 1 ? "]" : ", ";
+            if (i < value.length - 1) result += ", ";
         }
-        return result;
+        return result + "]";
     }
 
     deepCopy(value: T[]): T[] {

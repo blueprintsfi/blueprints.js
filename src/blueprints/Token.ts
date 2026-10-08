@@ -9,6 +9,8 @@ type IdCache = {
     externalTokenId: Uint8Array | null;
 };
 
+const MAX_AMOUNT = (1n << 256n) - 1n;
+
 export default abstract class Token {
     private _weiPerUnit: Fraction;
     private _weiAmount!: bigint
@@ -55,8 +57,8 @@ export default abstract class Token {
     }
 
     setWeiAmount(newAmount: bigint): void {
-        if (newAmount < 0n) {
-            throw new Error("Amount must be nonnegative");
+        if (newAmount < 0n || newAmount > MAX_AMOUNT) {
+            throw new Error("Amount out of range");
         }
 
         this._weiAmount = newAmount;

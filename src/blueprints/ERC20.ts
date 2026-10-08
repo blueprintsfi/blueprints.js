@@ -17,7 +17,17 @@ export default class ERC20 extends Token {
     override params: ERC20Params;
 
     constructor(amount: Fraction | bigint, params: types.Infer<typeof paramsType>) {
-        super(amount, 10n ** params.decimals);
+        const { decimals } = params;
+
+        // ❯ 10n**77n >= 2n ** 256n
+        // false
+        // ❯ 10n**78n >= 2n ** 256n
+        // true
+        if (decimals < 0n || decimals > 77n) {
+            throw new Error("Decimals out of range");
+        }
+
+        super(amount, 10n ** decimals);
         this.params = paramsType.deepCopy(params);
     }
 

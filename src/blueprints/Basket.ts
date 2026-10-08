@@ -4,6 +4,8 @@ import * as types from "../types.js";
 import { calculateGcd, Fraction, numberToBytesBE } from "../utils.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 
+const MAX_AMOUNT = (1n << 256n) - 1n;
+
 function compareIds(lhs: Uint8Array, rhs: Uint8Array): number {
     for (let i = 0; i < 32; i++) {
         if (lhs[i]! !== rhs[i]!) {
@@ -31,7 +33,10 @@ function aggregateAmounts(tokens: Token[]): AggregateAmounts {
                 weiAmount: token.weiAmount,
             });
         } else {
-            result[index]!.weiAmount += token.weiAmount;
+            const amount = result[index]!.weiAmount += token.weiAmount;
+            if (amount > MAX_AMOUNT) {
+                throw new Error("Amount too large");
+            }
         }
     }
 
@@ -84,13 +89,6 @@ export default class Basket extends Token {
         let gcd = 0n;
         for (const { weiAmount } of aggregated) {
             gcd = calculateGcd(gcd, weiAmount);
-        }
-
-        for (const { weiAmount } of aggregated) {
-            // weiAmount / gcd >= 2 ** 256
-            if (weiAmount >= (gcd << 256n)) {
-                throw new Error("Amount too large");
-            }
         }
 
         super(amount, gcd);

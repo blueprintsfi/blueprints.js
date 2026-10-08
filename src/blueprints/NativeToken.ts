@@ -17,7 +17,17 @@ export default class NativeToken extends Token {
     override params: NativeTokenParams;
 
     constructor(amount: Fraction | bigint, params: NativeTokenParams) {
-        super(amount, 10n ** params.decimals);
+        const { decimals } = params;
+
+        // ❯ 10n**77n >= 2n ** 256n
+        // false
+        // ❯ 10n**78n >= 2n ** 256n
+        // true
+        if (decimals < 0n || decimals > 77n) {
+            throw new Error("Decimals out of range");
+        }
+
+        super(amount, 10n ** decimals);
         this.params = paramsType.deepCopy(params);
     }
 

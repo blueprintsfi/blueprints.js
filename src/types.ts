@@ -185,8 +185,7 @@ export class Struct<T extends Record<string, Type<any>>> implements Type<InferSt
         let isFirst = true;
         for (const name in this.type) {
             if (!isFirst) {
-                tokenizer.mustMatchString(",");
-                tokenizer.mustMatchString(" ");
+                tokenizer.mustMatchString(", ");
             } else {
                 isFirst = false;
             }
@@ -219,7 +218,7 @@ export class Struct<T extends Record<string, Type<any>>> implements Type<InferSt
         return result;
     }
 }
-type InferUnionInner<T> = {
+type InferUnionUgly<T> = {
     [K in keyof T]-?: {
         kind: K;
         value: Infer<T[K]>;
@@ -230,9 +229,9 @@ type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
 
-type InferUnion<T> = Prettify<InferUnionInner<T>>;
+type InferUnion<T> = Prettify<InferUnionUgly<T>>;
 
-export class Union<T extends Record<string, Type<any>>> implements Type<InferUnion<T>> {
+export class Union<T extends Record<string, Struct<any>>> implements Type<InferUnion<T>> {
     constructor(private type: T) {}
 
     parse(tokenizer: Tokenizer): InferUnion<T> {
@@ -240,9 +239,8 @@ export class Union<T extends Record<string, Type<any>>> implements Type<InferUni
         if (!Object.prototype.hasOwnProperty.call(this.type, kind)) {
             throw new SyntaxError(`Unknown union variant: ${kind}`);
         }
-        tokenizer.mustMatchString("<");
+
         const value = this.type[kind]!.parse(tokenizer);
-        tokenizer.mustMatchString(">");
         return { kind, value } as InferUnion<T>;
     }
 

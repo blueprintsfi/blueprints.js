@@ -37,7 +37,7 @@ const position = new WithMetadata(2n, {
 
 assert.strictEqual(
     position.toString(),
-    `2 WithMetadata<1 NativeToken<18>, {"user_comment":"I know I'm overexposed but the price is down right now"}>`,
+    `2 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but the price is down right now" }>`,
 );
 assert.strictEqual(
     position.externalTokenId().toHex(),

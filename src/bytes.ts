@@ -73,23 +73,29 @@ export class StringBytes extends Bytes {
 }
 
 export class MapBytes extends Bytes {
-    readonly map: Readonly<Record<string, string>>;
+    readonly map: ReadonlyMap<string, string>;
     private encoded: Uint8Array | null = null;
-    private json: string | null = null;
-    private html: string | null = null;
+    private cachedRaw: string | null = null;
+    private cachedHtml: string | null = null;
 
-    constructor(map: Record<string, string>) {
+    constructor(map: Map<string, string> | Record<string, string>) {
         super();
 
-        const copied = Object.create(null) as Record<string, string>;
-        for (const key in map) {
-            const value = map[key]!;
-            validateString(key, "Map key");
-            validateString(value, "Map value");
-            copied[key] = value;
+        if (!(map instanceof Map)) {
+            const converted = new Map<string, string>();
+            for (const key in map) {
+                converted.set(key, map[key]!);
+            }
+
+            this.map = converted;
+        } else {
+            this.map = new Map(map);
         }
 
-        this.map = copied;
+        for (const [key, value] of this.map) {
+            validateString(key, "Map keys");
+            validateString(value, "Map values");
+        }
     }
 
     override bytes(): Uint8Array {
@@ -104,31 +110,57 @@ export class MapBytes extends Bytes {
     }
 
     override toString(type: ToStringFormat = "raw"): string {
-        if (type === "raw") {
-            if (this.json === null) {
-                this.json = JSON.stringify(this.map);
+        if (this.map.size === 0) return "{}";
+
+        switch (type) {
+            case "html": {
+                if (this.cachedHtml !== null) return this.cachedHtml;
+                break;
             }
-            return this.json;
+
+            case "raw": {
+                if (this.cachedRaw !== null) return this.cachedRaw;
+                break;
+            }
         }
 
-        if (this.html === null) {
-            let result = "{";
-            let isFirst = true;
-            for (const key in this.map) {
-                if (!isFirst) {
-                    result += ",";
-                } else {
-                    isFirst = false;
+        let result = "{ ";
+        let isFirst = true;
+        for (const [key, value] of this.map) {
+            if (!isFirst) {
+                result += ", ";
+            } else {
+                isFirst = false;
+            }
+
+            switch (type) {
+                case "html": {
+                    result += `"<span class="bp-string">${key}</span>": `;
+                    result += `"<span class="bp-string">${value}</span>"`;
+                    break;
                 }
 
-                result += `"<span class="bp-string">${key}</span>":`;
-                result += `"<span class="bp-string">${this.map[key]!}</span>"`;
+                case "raw": {
+                    result += `"${key}": "${value}"`
+                    break;
+                }
             }
-            result += "}";
-            this.html = result;
+        }
+        result += " }";
+
+        switch (type) {
+            case "html": {
+                this.cachedHtml = result;
+                break;
+            }
+
+            case "raw": {
+                this.cachedRaw = result;
+                break;
+            }
         }
 
-        return this.html;
+        return result;
     }
 }
 

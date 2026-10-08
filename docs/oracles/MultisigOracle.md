@@ -44,12 +44,12 @@ const multisigOracle = new MultisigOracle({
     feedId: new HashedBytes(new MapBytes({
         market: "BTC",
         condition: "above 100000",
-        date: "2027-01-01",
+        date: "2027-01-01 00:00:00 UTC",
     })),
 });
 assert.strictEqual(
     multisigOracle.toString(),
-    `MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf, 0x663056E2C695Be0d593271513C6a0794Bc7E6E6F, 0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({"market":"BTC","condition":"above 100000","date":"2027-01-01"})>`,
+    `MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf, 0x663056E2C695Be0d593271513C6a0794Bc7E6E6F, 0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({ "market": "BTC", "condition": "above 100000", "date": "2027-01-01 00:00:00 UTC" })>`,
 );
 ```
 

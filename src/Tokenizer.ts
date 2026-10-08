@@ -1,17 +1,15 @@
 export default class Tokenizer {
     constructor(public string: string) {}
 
-    matchPunctuation(char: string): boolean {
-        if (this.string.length === 0 || this.string[0] !== char) {
-            return false;
-        }
+    matchString(str: string) {
+        if (!this.string.startsWith(str)) return false;
 
-        this.string = this.string.slice(1);
+        this.string = this.string.slice(str.length);
         return true;
     }
 
-    mustMatchPunctuation(char: string) {
-        if (!this.matchPunctuation(char)) {
+    mustMatchString(char: string) {
+        if (!this.matchString(char)) {
             throw new SyntaxError(`Expected '${char}'`);
         }
     }

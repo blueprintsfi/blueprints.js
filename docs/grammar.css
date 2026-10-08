@@ -1,0 +1,29 @@
+.def {
+    margin: 20px 0;
+}
+
+.prod {
+    padding: 2px 24px;
+    margin: 2px 0;
+}
+
+#rendered var {
+    padding-right: 2px;
+    margin-right: -2px;
+}
+
+#rendered var, #rendered .var {
+    cursor: pointer;
+    transition-property: background-color color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+    border-radius: 5px;
+}
+
+#rendered var, #rendered .var { color: var(--color-primary); }
+var[data-var="0"], .var[data-var="0"] { background-color: #783c4a; }
+var[data-var="1"], .var[data-var="1"] { background-color: #783c4a; }
+var[data-var="1"], .var[data-var="1"] { background-color: #73502d; }
+var[data-var="2"], .var[data-var="2"] { background-color: #285f55; }
+var[data-var="3"], .var[data-var="3"] { background-color: #345b85; }
+var[data-var="4"], .var[data-var="4"] { background-color: #624778; }

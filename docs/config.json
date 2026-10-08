@@ -3,7 +3,8 @@
         "name": "General",
         "pages": {
             "index": "Intro",
-            "blueprintsjs": "blueprints.js"
+            "blueprintsjs": "blueprints.js",
+            "grammar": "Formal grammar"
         }
     }, {
         "name": "Blueprints",

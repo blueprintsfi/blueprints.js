@@ -1,6 +1,6 @@
-Blueprints is a free and open-source on-chain framework for expressing customized
-financial positions, created by parametrizing existing primitives. Examples of
-tokens include:
+Blueprints is a free and open-source on-chain framework for expressing
+customized financial positions, created by parametrizing existing primitives.
+Examples of tokens include:
 - `1 NativeToken<18>` – can be minted by depositing one native token (e.g. 1
   ETH) and burned to withdraw it,
 - `20 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>` – can be minted by
@@ -8,14 +8,14 @@ tokens include:
 - `0.05 ComposablePrediction<1 NativeToken<18>,
   [(MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf,
   0x663056E2C695Be0d593271513C6a0794Bc7E6E6F,
-  0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2,
-  keccak256({"market":"BTC","condition":"above 100000","time":"2027-01-01
-  00:00:00 UTC"})>, 1, 0)]>` – can be exchanged for `0.05 NativeToken<18>` if at
-  least 2 out of 3 signers sign that the specified feed resolves to an integer
-  between 1 and infinity (anything but zero),
-- `10 WithMetadata<1 NativeToken<18>, {"user_comment":"I know I'm overexposed
-  but the price is down right now"}>` – wraps a position together with arbitrary
-  bytes without changing the underlying token id.
+  0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({ "market": "BTC",
+  "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, 1, 0)]>` –
+  can be exchanged for `0.05 NativeToken<18>` if at least 2 out of 3 signers
+  sign that the specified feed resolves to an integer between 1 and infinity
+  (anything but zero),
+- `10 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed
+  but the price is down right now" }>` – wraps a position together with
+  arbitrary bytes without changing the underlying token id.
 
 Although positions expressed by these tokens are vastly different, all of them
 share a common interface.

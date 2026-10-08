@@ -18,26 +18,25 @@ type OracleConstructor<T> = {
 };
 
 function parseMapBytes(tokenizer: Tokenizer) {
-    const map = Object.create(null) as Record<string, string>;
-    if (tokenizer.matchPunctuation("}")) {
+    const map = new Map<string, string>();
+    if (tokenizer.matchString("}")) {
         return new MapBytes(map);
     }
 
     while (true) {
-        tokenizer.mustMatchPunctuation("\"");
-        const key = tokenizer.until("\"");
-        tokenizer.mustMatchPunctuation(":");
-        tokenizer.mustMatchPunctuation("\"");
-        const value = tokenizer.until("\"");
-        if (key in map) {
+        tokenizer.mustMatchString(` "`);
+        const key = tokenizer.until(`"`);
+        tokenizer.mustMatchString(`: "`);
+        const value = tokenizer.until(`"`);
+        if (map.has(key)) {
             throw new Error("Duplicated map key");
         }
-        map[key] = value;
+        map.set(key, value);
 
-        if (tokenizer.matchPunctuation("}")) {
+        if (tokenizer.matchString(" }")) {
             return new MapBytes(map);
         }
-        tokenizer.mustMatchPunctuation(",");
+        tokenizer.mustMatchString(",");
     }
 }
 
@@ -90,23 +89,23 @@ export const integer: Type<bigint> = {
 
 export const bytes: Type<Bytes> = {
     parse(tokenizer) {
-        if (tokenizer.matchPunctuation("\"")) {
+        if (tokenizer.matchString("\"")) {
             const string = tokenizer.until("\"");
             return new StringBytes(string);
         }
 
-        if (tokenizer.matchPunctuation("{")) {
+        if (tokenizer.matchString("{")) {
             return parseMapBytes(tokenizer);
         }
 
-        if (tokenizer.matchPunctuation("0")) {
-            tokenizer.mustMatchPunctuation("x");
+        if (tokenizer.matchString("0")) {
+            tokenizer.mustMatchString("x");
             const hex = tokenizer.matchRegex(/^([0-9a-f]{2})*/);
             return new RawBytes(hexToBytes(hex));
         }
 
         const fn = tokenizer.matchIdentifier();
-        tokenizer.mustMatchPunctuation("(");
+        tokenizer.mustMatchString("(");
 
         let result: Bytes;
         switch (fn) {
@@ -120,7 +119,7 @@ export const bytes: Type<Bytes> = {
             }
         }
 
-        tokenizer.mustMatchPunctuation(')');
+        tokenizer.mustMatchString(')');
         return result;
     },
     stringify(value, type) {
@@ -135,8 +134,8 @@ export class Array<T> implements Type<T[]> {
     constructor(private subtype: Type<T>) {}
 
     parse(tokenizer: Tokenizer) {
-        tokenizer.mustMatchPunctuation("[");
-        if (tokenizer.matchPunctuation("]")) {
+        tokenizer.mustMatchString("[");
+        if (tokenizer.matchString("]")) {
             return [];
         }
 
@@ -144,11 +143,11 @@ export class Array<T> implements Type<T[]> {
         while (true) {
             result.push(this.subtype.parse(tokenizer));
 
-            if (tokenizer.matchPunctuation("]")) {
+            if (tokenizer.matchString("]")) {
                 break;
             }
-            tokenizer.mustMatchPunctuation(",");
-            tokenizer.mustMatchPunctuation(" ");
+            tokenizer.mustMatchString(",");
+            tokenizer.mustMatchString(" ");
         }
         return result;
     }
@@ -181,19 +180,19 @@ export class Struct<T extends Record<string, Type<any>>> implements Type<InferSt
     constructor(private type: T) {}
 
     parse(tokenizer: Tokenizer, brackets: "<>" | "()" = "()") {
-        tokenizer.mustMatchPunctuation(brackets[0]!);
+        tokenizer.mustMatchString(brackets[0]!);
         const result = {} as InferStruct<T>;
         let isFirst = true;
         for (const name in this.type) {
             if (!isFirst) {
-                tokenizer.mustMatchPunctuation(",");
-                tokenizer.mustMatchPunctuation(" ");
+                tokenizer.mustMatchString(",");
+                tokenizer.mustMatchString(" ");
             } else {
                 isFirst = false;
             }
             result[name] = this.type[name]!.parse(tokenizer);
         }
-        tokenizer.mustMatchPunctuation(brackets[1]!);
+        tokenizer.mustMatchString(brackets[1]!);
         return result;
     }
 
@@ -241,9 +240,9 @@ export class Union<T extends Record<string, Type<any>>> implements Type<InferUni
         if (!Object.prototype.hasOwnProperty.call(this.type, kind)) {
             throw new SyntaxError(`Unknown union variant: ${kind}`);
         }
-        tokenizer.mustMatchPunctuation("<");
+        tokenizer.mustMatchString("<");
         const value = this.type[kind]!.parse(tokenizer);
-        tokenizer.mustMatchPunctuation(">");
+        tokenizer.mustMatchString(">");
         return { kind, value } as InferUnion<T>;
     }
 

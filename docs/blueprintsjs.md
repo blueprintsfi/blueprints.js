@@ -44,7 +44,7 @@ const annotated = new WithMetadata(2n, {
 });
 assert.strictEqual(
     annotated.toString(),
-    `2 WithMetadata<1 NativeToken<18>, {"user_comment":"I know I'm overexposed but the price is down right now"}>`,
+    `2 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but the price is down right now" }>`,
 );
 assert.strictEqual(annotated.externalTokenId().toHex(), annotated.params.token.externalTokenId().toHex());
 ```
@@ -354,6 +354,7 @@ space) other than `"` and `\`.
 import { MapBytes, WithMetadata, NativeToken } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
+// The `MapBytes` constructor takes `Record<string, string>` or `Map<string, string>`.
 const metadata =  new MapBytes({
     user_comment: "I know I'm overexposed but the price is down right now",
 });
@@ -364,11 +365,17 @@ const token = new WithMetadata(2n, {
 
 assert.strictEqual(
     metadata.toString(),
-    `{"user_comment":"I know I'm overexposed but the price is down right now"}`,
+    `{ "user_comment": "I know I'm overexposed but the price is down right now" }`,
 );
 assert.strictEqual(
     token.toString(),
-    `2 WithMetadata<1 NativeToken<18>, {"user_comment":"I know I'm overexposed but the price is down right now"}>`,
+    `2 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but the price is down right now" }>`,
+);
+
+assert(Object.getPrototypeOf(metadata.map), Map.prototype);
+assert.strictEqual(
+    metadata.map.get("user_comment"),
+    "I know I'm overexposed but the price is down right now",
 );
 ```
 
@@ -394,6 +401,6 @@ const oracle = new MultisigOracle({
 });
 assert.strictEqual(
     oracle.toString(),
-    `MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({"market":"BTC","condition":"above 100000","time":"2027-01-01 00:00:00 UTC"})>`,
+    `MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({ "market": "BTC", "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>`,
 );
 ```

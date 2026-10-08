@@ -193,10 +193,10 @@ const prediction = new ComposablePrediction(1n, {
         endRange: 1n,
     }],
 });
-assert.strictEqual(prediction.toString(), `1 ComposablePrediction<5 NativeToken<18>, [(MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({"market":"BTC","condition":"above 100000","time":"2027-01-01 00:00:00 UTC"})>, 0, 1)]>`);
+assert.strictEqual(prediction.toString(), `1 ComposablePrediction<5 NativeToken<18>, [(MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({ "market": "BTC", "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, 0, 1)]>`);
 
 const opposite = prediction.opposite();
-assert.strictEqual(opposite.toString(), `1 ComposablePrediction<5 NativeToken<18>, [(MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({"market":"BTC","condition":"above 100000","time":"2027-01-01 00:00:00 UTC"})>, 1, 0)]>`);
+assert.strictEqual(opposite.toString(), `1 ComposablePrediction<5 NativeToken<18>, [(MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, keccak256({ "market": "BTC", "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, 1, 0)]>`);
 ```
 
 ## See also

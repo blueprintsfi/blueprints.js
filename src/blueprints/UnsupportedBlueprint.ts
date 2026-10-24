@@ -1,36 +1,46 @@
-import Token from "./Token.js";
-import * as types from "../types.js";
-import type { Fraction } from "../utils.js";
+import type { Bytes } from "../bytes.js";
+import { parseAddress, parseBytes, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import { validateAddress } from "../utils.js";
+import { TokenDefinition } from "./token.js";
 
-const paramsType = new types.Struct({
-    address: types.address,
-    internalTokenId: types.bytes,
-});
-
-export type UnsupportedBlueprintParams = types.Infer<typeof paramsType>;
-
-export default class UnsupportedBlueprint extends Token {
-    static paramsType = paramsType;
+export default class UnsupportedBlueprint extends TokenDefinition {
     static override name = "UnsupportedBlueprint";
 
-    override params: UnsupportedBlueprintParams;
-
-    constructor(amount: Fraction | bigint, params: UnsupportedBlueprintParams) {
-        if (params.internalTokenId.length() !== 32) {
+    constructor(readonly address: string, readonly tokenId: Bytes) {
+        if (tokenId.length() !== 32) {
             throw new Error("Invalid token id");
         }
 
-        super(amount, 1n);
-        this.params = paramsType.deepCopy(params);
+        validateAddress(address);
+
+        super(1n);
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
-        return this.params.internalTokenId.bytes();
+        return this.tokenId.bytes();
     }
 
     override blueprintAddress(): string {
-        return this.params.address;
+        return this.address;
+    }
+
+    override toString(): string {
+        return `UnsupportedBlueprint<${this.address}, ${this.tokenId.toString()}>`;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-blueprint">UnsupportedBlueprint</span>&lt;`;
+        result += `<span class="bp-address">${this.address}</span>, `;
+        result += `${this.tokenId.toHTMLString()}&gt;`;
+        return result;
     }
 }
 
-types.registerBlueprint(UnsupportedBlueprint);
+function parseUnsupportedBlueprint(tokenizer: Tokenizer): UnsupportedBlueprint {
+    const address = parseAddress(tokenizer, false);
+    tokenizer.mustConsume(", ");
+    const tokenId = parseBytes(tokenizer);
+    return new UnsupportedBlueprint(address, tokenId);
+}
+
+tokenDefinitionParsers.set(UnsupportedBlueprint.name, parseUnsupportedBlueprint);

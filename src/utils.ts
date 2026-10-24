@@ -1,14 +1,47 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
+import { hexToBytes } from "@noble/hashes/utils.js";
 
+const textEncoder = new TextEncoder();
+
+export function validateAddress(address: string): void {
+    if (!isAddressValid(address)) {
+        throw new Error("Invalid address");
+    }
+}
+
+function isAddressValid(address: string): boolean {
+    if (address.length !== 42 || !address.startsWith("0x")) return false;
+
+    for (let i = 2; i < 42; i++) {
+        const c = address.charCodeAt(i);
+        if ((c < 48 || c > 57) && (c < 97 || c > 102) && (c < 65 || c > 70)) return false;
+    }
+
+    const lower = address.slice(2).toLowerCase();
+    const hash = keccak_256(textEncoder.encode(lower));
+    for (let i = 0; i < 40; i++) {
+        const c = address.charCodeAt(i + 2);
+        if (c <= 57) continue;
+        // Each address character uses one hash nibble's high bit (EIP-55).
+        const uppercase = (hash[i >> 1]! & (i % 2 === 0 ? 0x80 : 0x08)) !== 0;
+        if (uppercase !== (c < 97)) return false;
+    }
+    return true;
+}
+
+/**
+ * Adds checksum to a **lowercase** address. The result will be invalid if
+ * `address` in not a valid lowercase address.
+ */
 export function addressWithChecksum(address: string): string {
     address = address.slice(2);
-    const hash = bytesToHex(keccak_256(new TextEncoder().encode(address)));
+    const hash = keccak_256(textEncoder.encode(address));
 
     let result = "0x";
     for (let index = 0; index < address.length; index++) {
         const char = address[index]!;
-        result += parseInt(hash[index]!, 16) >= 8 ? char.toUpperCase() : char;
+        const uppercase = (hash[index >> 1]! & (index % 2 === 0 ? 0x80 : 0x08)) !== 0;
+        result += uppercase ? char.toUpperCase() : char;
     }
     return result;
 };
@@ -66,9 +99,18 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     if (typeof weiPerUnit === "bigint") {
         weiPerUnit = new Fraction(weiPerUnit, 1n);
     }
-    let multiplier = 1n;
-    let decimals = 0;
-    while (multiplier * weiPerUnit.denominator < weiPerUnit.numerator) {
+    const scaledAmount = weiPerUnit.denominator * weiAmount;
+    if (scaledAmount % weiPerUnit.numerator === 0n) {
+        return (scaledAmount / weiPerUnit.numerator).toString();
+    }
+
+    // The digit-count difference is at most one below ceil(log10(weiPerUnit)).
+    let decimals = Math.max(
+        0,
+        weiPerUnit.numerator.toString().length - weiPerUnit.denominator.toString().length,
+    );
+    let multiplier = 10n ** BigInt(decimals);
+    if (multiplier * weiPerUnit.denominator < weiPerUnit.numerator) {
         multiplier *= 10n;
         decimals++;
     }
@@ -76,7 +118,7 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     multiplier *= 100n;
     decimals += 2;
 
-    const num = weiPerUnit.denominator * multiplier * weiAmount;
+    const num = scaledAmount * multiplier;
     const isExact = num % weiPerUnit.numerator === 0n;
 
     let result = (num << 1n) / weiPerUnit.numerator;
@@ -100,17 +142,21 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     return `${isExact ? "" : "~"}${integer}${fraction}`;
 }
 
-export function weiFromString(str: string, weiPerUnit: Fraction | bigint): bigint {
+export function weiFromString(input: string, weiPerUnit: Fraction | bigint): bigint {
     if (typeof weiPerUnit === "bigint") {
         weiPerUnit = new Fraction(weiPerUnit, 1n);
     }
-    const stripped = str.startsWith("~") ? str.slice(1) : str;
+    const stripped = input.startsWith("~") ? input.slice(1) : input;
     const dotIndex = stripped.indexOf(".");
 
     let result: bigint;
     try {
         if (dotIndex === -1) {
-            result = new Fraction(BigInt(stripped), 1n).mul(weiPerUnit).toBigInt();
+            const numerator = BigInt(stripped) * weiPerUnit.numerator;
+            if (numerator < 0n || numerator % weiPerUnit.denominator !== 0n) {
+                throw new Error("Fraction must represent a non-negative integer");
+            }
+            result = numerator / weiPerUnit.denominator;
         } else {
             const integer = BigInt(stripped.slice(0, dotIndex));
             const fraction = BigInt(stripped.slice(dotIndex + 1));
@@ -126,7 +172,7 @@ export function weiFromString(str: string, weiPerUnit: Fraction | bigint): bigin
         throw new Error("Invalid fraction");
     }
 
-    if (weiToString(result, weiPerUnit) !== str) {
+    if (weiToString(result, weiPerUnit) !== input) {
         throw new Error("Invalid fraction");
     }
 

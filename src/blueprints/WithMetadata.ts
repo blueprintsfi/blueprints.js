@@ -1,36 +1,43 @@
-import Token from "./Token.js";
-import * as types from "../types.js";
-import type { Fraction } from "../utils.js";
+import type { Bytes } from "../bytes.js";
+import { parseBytes, parseToken, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import { Token, TokenDefinition } from "./token.js";
 
-const paramsType = new types.Struct({
-    token: types.token,
-    metadata: types.bytes,
-});
-
-export type WithMetadataParams = types.Infer<typeof paramsType>;
-
-export default class WithMetadata extends Token {
-    static paramsType = paramsType;
+export default class WithMetadata extends TokenDefinition {
     static override name = "WithMetadata";
 
-    override params: WithMetadataParams;
-
-    constructor(amount: Fraction | bigint, params: WithMetadataParams) {
-        super(amount, params.token.weiAmount);
-        this.params = paramsType.deepCopy(params);
+    constructor(readonly token: Token, readonly metadata: Bytes) {
+        super(token.weiAmount);
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
-        return this.params.token.internalTokenId();
+        return this.token.definition.internalTokenId();
     }
 
     override blueprintAddress(): string {
-        return this.params.token.blueprintAddress();
+        return this.token.definition.blueprintAddress();
     }
 
     override externalTokenId(): Uint8Array {
-        return this.params.token.externalTokenId();
+        return this.token.definition.externalTokenId();
+    }
+
+    override toString(): string {
+        return `WithMetadata<${this.token.toString()}, ${this.metadata.toString()}>`;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-blueprint">WithMetadata</span>&lt;`;
+        result += `${this.token.toHTMLString()}, `;
+        result += `${this.metadata.toHTMLString()}&gt;`;
+        return result;
     }
 }
 
-types.registerBlueprint(WithMetadata);
+function parseWithMetadata(tokenizer: Tokenizer): WithMetadata {
+    const token = parseToken(tokenizer);
+    tokenizer.mustConsume(", ");
+    const metadata = parseBytes(tokenizer);
+    return new WithMetadata(token, metadata);
+}
+
+tokenDefinitionParsers.set(WithMetadata.name, parseWithMetadata);

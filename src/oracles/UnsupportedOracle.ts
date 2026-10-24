@@ -1,35 +1,43 @@
-import * as types from "../types.js";
+import type { Bytes } from "../bytes.js";
+import { oracleParsers, parseAddress, parseBytes, type Tokenizer } from "../parser.js";
 import Oracle from "./Oracle.js";
 
-const paramsType = new types.Struct({
-    address: types.address,
-    feedId: types.bytes,
-});
-
-export type UnsupportedOracleParams = types.Infer<typeof paramsType>;
-
 export default class UnsupportedOracle extends Oracle {
-    static paramsType = paramsType;
     static override name = "UnsupportedOracle";
 
-    override params: UnsupportedOracleParams;
-
-    constructor(params: UnsupportedOracleParams) {
-        if (params.feedId.length() !== 32) {
+    constructor(readonly oracleAddress: string, readonly feedIdBytes: Bytes) {
+        if (feedIdBytes.length() !== 32) {
             throw new Error("Invalid feed id");
         }
 
         super();
-        this.params = paramsType.deepCopy(params);
     }
 
     protected override calculateFeedId(): Uint8Array {
-        return this.params.feedId.bytes();
+        return this.feedIdBytes.bytes();
     }
 
     override address(): string {
-        return this.params.address;
+        return this.oracleAddress;
+    }
+
+    override toString(): string {
+        return `UnsupportedOracle<${this.oracleAddress}, ${this.feedIdBytes.toString()}>`;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-oracle">UnsupportedOracle</span>&lt;`;
+        result += `<span class="bp-address">${this.oracleAddress}</span>, `;
+        return result + this.feedIdBytes.toHTMLString() + "&gt;";
     }
 }
 
-types.registerOracle(UnsupportedOracle);
+function parse(tokenizer: Tokenizer): UnsupportedOracle {
+    const address = parseAddress(tokenizer);
+    tokenizer.mustConsume(", ");
+    const feedIdBytes = parseBytes(tokenizer);
+    tokenizer.mustConsume(">");
+    return new UnsupportedOracle(address, feedIdBytes);
+}
+
+oracleParsers.set(UnsupportedOracle.name, parse);

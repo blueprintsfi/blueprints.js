@@ -1,24 +1,12 @@
-import Token  from "./Token.js";
-import * as types from "../types.js";
-import type { Fraction } from "../utils.js";
+import { parseInteger, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import { TokenDefinition } from "./token.js";
 
 const zero = new Uint8Array(32);
 
-const paramsType = new types.Struct({
-    decimals: types.integer,
-});
-
-export type NativeTokenParams = types.Infer<typeof paramsType>;
-
-export default class NativeToken extends Token {
-    static paramsType = paramsType;
+export default class NativeToken extends TokenDefinition {
     static override name = "NativeToken";
 
-    override params: NativeTokenParams;
-
-    constructor(amount: Fraction | bigint, params: NativeTokenParams) {
-        const { decimals } = params;
-
+    constructor(readonly decimals: bigint) {
         // ❯ 10n**77n >= 2n ** 256n
         // false
         // ❯ 10n**78n >= 2n ** 256n
@@ -27,8 +15,7 @@ export default class NativeToken extends Token {
             throw new Error("Decimals out of range");
         }
 
-        super(amount, 10n ** decimals);
-        this.params = paramsType.deepCopy(params);
+        super(10n ** decimals);
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
@@ -38,6 +25,21 @@ export default class NativeToken extends Token {
     override blueprintAddress(): string {
         return "0xF3F67A0F38BF0A61DD2D93ADf9B04753D39C631C";
     }
+
+    override toString(): string {
+        return `NativeToken<${this.decimals}>`;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-blueprint">NativeToken</span>&lt;`;
+        result += `<span class="bp-int">${this.decimals}</span>&gt;`;
+        return result;
+    }
 }
 
-types.registerBlueprint(NativeToken);
+function parseNativeToken(tokenizer: Tokenizer): NativeToken {
+    const decimals = parseInteger(tokenizer);
+    return new NativeToken(decimals);
+}
+
+tokenDefinitionParsers.set(NativeToken.name, parseNativeToken);

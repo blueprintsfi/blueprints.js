@@ -1,25 +1,15 @@
-import Token from "./Token.js";
-import * as types from "../types.js";
-import type { Fraction } from "../utils.js";
+import type { Bytes } from "../bytes.js";
+import { parseBytes, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import { TokenDefinition } from "./token.js";
 
-const paramsType = new types.Struct({
-    externalTokenId: types.bytes,
-});
-
-export type UnknownBlueprintParams = types.Infer<typeof paramsType>;
-
-export default class UnknownBlueprint extends Token {
-    static paramsType = paramsType;
+export default class UnknownBlueprint extends TokenDefinition {
     static override name = "UnknownBlueprint";
 
-    override params: UnknownBlueprintParams;
-
-    constructor(amount: Fraction | bigint, params: UnknownBlueprintParams) {
-        if (params.externalTokenId.length() !== 32) {
+    constructor(readonly tokenId: Bytes) {
+        if (tokenId.length() !== 32) {
             throw new Error("Invalid token id");
         }
-        super(amount, 1n);
-        this.params = paramsType.deepCopy(params);
+        super(1n);
     }
 
     protected override calculateInternalTokenId(): never {
@@ -31,8 +21,22 @@ export default class UnknownBlueprint extends Token {
     }
 
     override externalTokenId(): Uint8Array<ArrayBufferLike> {
-        return this.params.externalTokenId.bytes();
+        return this.tokenId.bytes();
+    }
+
+    override toString(): string {
+        return `UnknownBlueprint<${this.tokenId.toString()}>`;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-blueprint">UnknownBlueprint</span>&lt;`;
+        result += `${this.tokenId.toHTMLString()}&gt;`;
+        return result;
     }
 }
 
-types.registerBlueprint(UnknownBlueprint);
+function parseUnknownBlueprint(tokenizer: Tokenizer): UnknownBlueprint {
+    return new UnknownBlueprint(parseBytes(tokenizer));
+}
+
+tokenDefinitionParsers.set(UnknownBlueprint.name, parseUnknownBlueprint);

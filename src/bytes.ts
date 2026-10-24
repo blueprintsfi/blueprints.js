@@ -1,11 +1,12 @@
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { type ToStringFormat } from "./types.js";
 import { keccak_256 } from "@noble/hashes/sha3.js";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 
 export abstract class Bytes {
     abstract length(): number;
     abstract bytes(): Uint8Array;
-    abstract toString(type?: ToStringFormat): string;
+
+    abstract toString(): string;
+    abstract toHTMLString(): string;
 }
 
 export class RawBytes extends Bytes {
@@ -28,9 +29,12 @@ export class RawBytes extends Bytes {
         return this.raw.length;
     }
 
-    override toString(type: ToStringFormat = "raw"): string {
-        const hex = bytesToHex(this.raw);
-        return type === "raw" ? "0x" + hex : `<span class="bp-bytes">0x${hex}</span>`;
+    override toString(): string {
+        return "0x" + bytesToHex(this.raw);
+    }
+
+    override toHTMLString(): string {
+        return `<span class="bp-bytes">${this.toString()}</span>`;
     }
 }
 
@@ -63,11 +67,11 @@ export class StringBytes extends Bytes {
         return this.string.length;
     }
 
-    override toString(type: ToStringFormat = "raw"): string {
-        if (type === "raw") {
-            return `"${this.string}"`;
-        }
+    override toString(): string {
+        return `"${this.string}"`;
+    }
 
+    override toHTMLString(): string {
         return `"<span class="bp-string">${this.string}</span>"`;
     }
 }
@@ -100,29 +104,18 @@ export class MapBytes extends Bytes {
 
     override bytes(): Uint8Array {
         if (this.encoded === null) {
-            this.encoded = new TextEncoder().encode(this.toString("raw"));
+            this.encoded = new TextEncoder().encode(this.toString());
         }
         return this.encoded.slice();
     }
 
     override length(): number {
-        return this.toString("raw").length;
+        return this.toString().length;
     }
 
-    override toString(type: ToStringFormat = "raw"): string {
+    override toString(): string {
         if (this.map.size === 0) return "{}";
-
-        switch (type) {
-            case "html": {
-                if (this.cachedHtml !== null) return this.cachedHtml;
-                break;
-            }
-
-            case "raw": {
-                if (this.cachedRaw !== null) return this.cachedRaw;
-                break;
-            }
-        }
+        if (this.cachedRaw !== null) return this.cachedRaw;
 
         let result = "{ ";
         let isFirst = true;
@@ -133,34 +126,32 @@ export class MapBytes extends Bytes {
                 isFirst = false;
             }
 
-            switch (type) {
-                case "html": {
-                    result += `"<span class="bp-string">${key}</span>": `;
-                    result += `"<span class="bp-string">${value}</span>"`;
-                    break;
-                }
-
-                case "raw": {
-                    result += `"${key}": "${value}"`
-                    break;
-                }
-            }
+            result += `"${key}": "${value}"`;
         }
         result += " }";
 
-        switch (type) {
-            case "html": {
-                this.cachedHtml = result;
-                break;
+        return this.cachedRaw = result;
+    }
+
+    override toHTMLString(): string {
+        if (this.map.size === 0) return "{}";
+        if (this.cachedHtml !== null) return this.cachedHtml;
+
+        let result = "{ ";
+        let isFirst = true;
+        for (const [key, value] of this.map) {
+            if (!isFirst) {
+                result += ", ";
+            } else {
+                isFirst = false;
             }
 
-            case "raw": {
-                this.cachedRaw = result;
-                break;
-            }
+            result += `"<span class="bp-string">${key}</span>": `;
+            result += `"<span class="bp-string">${value}</span>"`;
         }
+        result += " }";
 
-        return result;
+        return this.cachedHtml = result;
     }
 }
 
@@ -182,11 +173,11 @@ export class HashedBytes extends Bytes {
         return 32;
     }
 
-    override toString(type: ToStringFormat = "raw"): string {
-        if (type === "raw") {
-            return `keccak256(${this.preimage.toString("raw")})`;
-        }
+    override toString(): string {
+        return `keccak256(${this.preimage.toString()})`;
+    }
 
-        return `<span class="bp-func">keccak256</span>(${this.preimage.toString("html")})`;
+    override toHTMLString(): string {
+        return `<span class="bp-func">keccak256</span>(${this.preimage.toHTMLString()})`;
     }
 }

@@ -1,12 +1,5 @@
-import * as types from "../types.js";
-
 export default abstract class Oracle {
-    abstract params: unknown;
     private cachedFeedId: Uint8Array | null = null;
-
-    toString(type: types.ToStringFormat = "raw") {
-        return types.oracle.stringify(this, type);
-    }
 
     feedId(): Uint8Array {
         if (this.cachedFeedId !== null) {
@@ -17,4 +10,7 @@ export default abstract class Oracle {
 
     protected abstract calculateFeedId(): Uint8Array;
     abstract address(): string;
+
+    abstract toString(): string;
+    abstract toHTMLString(): string;
 }

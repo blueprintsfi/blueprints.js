@@ -1,8 +1,8 @@
-import Token from "./Token.js";
 import { keccak_256 } from "@noble/hashes/sha3.js";
-import * as types from "../types.js";
-import { calculateGcd, Fraction, numberToBytesBE } from "../utils.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
+import { parseToken, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import { calculateGcd, Fraction, numberToBytesBE } from "../utils.js";
+import { Token, TokenDefinition } from "./token.js";
 
 const MAX_AMOUNT = (1n << 256n) - 1n;
 
@@ -20,12 +20,12 @@ type AggregateAmounts = {
     weiAmount: bigint;
 }[];
 
-function aggregateAmounts(tokens: Token[]): AggregateAmounts {
+function aggregateAmounts(tokens: readonly Token[]): AggregateAmounts {
     let result: AggregateAmounts = [];
     const tokenIdMap = new Map<string, number>();
 
     for (const token of tokens) {
-        const tokenId = token.externalTokenId();
+        const tokenId = token.definition.externalTokenId();
         const index = getOrInsert(tokenIdMap, bytesToHex(tokenId), result.length);
         if (index === result.length) {
             result.push({
@@ -60,20 +60,12 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
     return value;
 }
 
-const paramsType = new types.Struct({
-    tokens: new types.Array(types.token),
-});
-
-export type BasketParams = types.Infer<typeof paramsType>;
-
-export default class Basket extends Token {
-    static paramsType = paramsType;
+export default class Basket extends TokenDefinition {
     static override name = "Basket";
 
-    override params: BasketParams;
+    tokens: readonly Token[];
 
-    constructor(amount: Fraction | bigint, params: BasketParams) {
-        const { tokens } = params;
+    constructor(tokens: Token[]) {
         if (tokens.length === 0) {
             throw new Error("There must be at least one token in a basket");
         }
@@ -91,12 +83,12 @@ export default class Basket extends Token {
             gcd = calculateGcd(gcd, weiAmount);
         }
 
-        super(amount, gcd);
-        this.params = paramsType.deepCopy(params);
+        super(gcd);
+        this.tokens = tokens.slice();
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
-        const aggregated = aggregateAmounts(this.params.tokens);
+        const aggregated = aggregateAmounts(this.tokens);
         aggregated.sort((lhs, rhs) => compareIds(lhs.tokenId, rhs.tokenId));
 
         const buffer = new Uint8Array(0x40 * aggregated.length);
@@ -112,6 +104,43 @@ export default class Basket extends Token {
     override blueprintAddress(): string {
         return "0x52B785358dDAff5B7A8C16b52f0C2f7C21f3eAa4";
     }
+
+    override toString(): string {
+        let result = "Basket<[";
+
+        const { length } = this.tokens;
+        for (let i = 0; i < length; i++) {
+            result += this.tokens[i]!.toString();
+            result += i === length - 1 ? "]>" : ", ";
+        }
+
+        return result;
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="bp-blueprint">Basket</span>&lt;[`;
+
+        const { length } = this.tokens;
+        for (let i = 0; i < length; i++) {
+            result += this.tokens[i]!.toHTMLString();
+            result += i === length - 1 ? "]&gt;" : ", ";
+        }
+
+        return result;
+    }
 }
 
-types.registerBlueprint(Basket);
+function parseBasket(tokenizer: Tokenizer): Basket {
+    tokenizer.mustConsume("[");
+
+    const tokens: Token[] = [];
+    while (true) {
+        tokens.push(parseToken(tokenizer));
+        if (tokenizer.consume("]")) break;
+        tokenizer.mustConsume(", ");
+    }
+
+    return new Basket(tokens);
+}
+
+tokenDefinitionParsers.set(Basket.name, parseBasket);

@@ -34,7 +34,7 @@ export class RawBytes extends Bytes {
     }
 
     override toHTMLString(): string {
-        return `<span class="bp-bytes">${this.toString()}</span>`;
+        return `<span class="bytes">${this.toString()}</span>`;
     }
 }
 
@@ -72,7 +72,7 @@ export class StringBytes extends Bytes {
     }
 
     override toHTMLString(): string {
-        return `"<span class="bp-string">${this.string}</span>"`;
+        return `"<span class="string">${this.string}</span>"`;
     }
 }
 
@@ -146,8 +146,8 @@ export class MapBytes extends Bytes {
                 isFirst = false;
             }
 
-            result += `"<span class="bp-string">${key}</span>": `;
-            result += `"<span class="bp-string">${value}</span>"`;
+            result += `"<span class="string">${key}</span>": `;
+            result += `"<span class="string">${value}</span>"`;
         }
         result += " }";
 
@@ -178,6 +178,6 @@ export class HashedBytes extends Bytes {
     }
 
     override toHTMLString(): string {
-        return `<span class="bp-func">keccak256</span>(${this.preimage.toHTMLString()})`;
+        return `<span class="func">keccak256</span>(${this.preimage.toHTMLString()})`;
     }
 }

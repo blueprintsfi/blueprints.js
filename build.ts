@@ -5,7 +5,6 @@ await Bun.build({
     entrypoints: ["src/blueprints.ts"],
     format: "cjs",
     outdir: "dist",
-    minify: true,
 });
 
 await rename("dist/blueprints.js", "dist/blueprints.cjs");
@@ -15,5 +14,4 @@ await Bun.build({
     entrypoints: ["src/blueprints.ts"],
     format: "esm",
     outdir: "dist",
-    minify: true,
 });

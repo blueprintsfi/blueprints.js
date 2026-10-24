@@ -26,7 +26,7 @@ export default class ConstantOracle extends Oracle {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-oracle">ConstantOracle</span>&lt;`;
+        let result = `<span class="oracle">ConstantOracle</span>&lt;`;
         result += `${this.innerOracle.toHTMLString()}&gt;`;
         return result;
     }

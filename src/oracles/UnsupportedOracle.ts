@@ -26,8 +26,8 @@ export default class UnsupportedOracle extends Oracle {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-oracle">UnsupportedOracle</span>&lt;`;
-        result += `<span class="bp-address">${this.oracleAddress}</span>, `;
+        let result = `<span class="oracle">UnsupportedOracle</span>&lt;`;
+        result += `<span class="address">${this.oracleAddress}</span>, `;
         return result + this.feedIdBytes.toHTMLString() + "&gt;";
     }
 }

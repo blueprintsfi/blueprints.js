@@ -117,15 +117,15 @@ export default class ComposablePrediction extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">ComposablePrediction</span>&lt;`;
+        let result = `<span class="blueprint">ComposablePrediction</span>&lt;`;
         result += `${this.collateral.toHTMLString()}, [`;
 
         const { length } = this.constraints;
         for (let i = 0; i < length; i++) {
             const { oracle, rangeStart: startRange, rangeEnd: endRange } = this.constraints[i]!;
             result += `(${oracle.toHTMLString()}, `;
-            result += `<span class="bp-int">${startRange}</span>, `;
-            result += `<span class="bp-int">${endRange}</span>)`;
+            result += `<span class="int">${startRange}</span>, `;
+            result += `<span class="int">${endRange}</span>)`;
             if (i < length - 1) result += ", ";
         }
 

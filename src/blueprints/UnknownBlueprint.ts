@@ -29,7 +29,7 @@ export default class UnknownBlueprint extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">UnknownBlueprint</span>&lt;`;
+        let result = `<span class="blueprint">UnknownBlueprint</span>&lt;`;
         result += `${this.tokenId.toHTMLString()}&gt;`;
         return result;
     }

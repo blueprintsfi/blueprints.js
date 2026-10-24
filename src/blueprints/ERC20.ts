@@ -35,9 +35,9 @@ export default class ERC20 extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">ERC20</span>&lt;`;
-        result += `<span class="bp-address">${this.address}</span>, `;
-        result += `<span class="bp-int">${this.decimals}</span>&gt;`;
+        let result = `<span class="blueprint">ERC20</span>&lt;`;
+        result += `<span class="address">${this.address}</span>, `;
+        result += `<span class="int">${this.decimals}</span>&gt;`;
         return result;
     }
 }

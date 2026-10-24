@@ -29,8 +29,8 @@ export default class UnsupportedBlueprint extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">UnsupportedBlueprint</span>&lt;`;
-        result += `<span class="bp-address">${this.address}</span>, `;
+        let result = `<span class="blueprint">UnsupportedBlueprint</span>&lt;`;
+        result += `<span class="address">${this.address}</span>, `;
         result += `${this.tokenId.toHTMLString()}&gt;`;
         return result;
     }

@@ -118,7 +118,7 @@ export default class Basket extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">Basket</span>&lt;[`;
+        let result = `<span class="blueprint">Basket</span>&lt;[`;
 
         const { length } = this.tokens;
         for (let i = 0; i < length; i++) {

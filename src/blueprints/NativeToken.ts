@@ -31,8 +31,8 @@ export default class NativeToken extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">NativeToken</span>&lt;`;
-        result += `<span class="bp-int">${this.decimals}</span>&gt;`;
+        let result = `<span class="blueprint">NativeToken</span>&lt;`;
+        result += `<span class="int">${this.decimals}</span>&gt;`;
         return result;
     }
 }

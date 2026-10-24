@@ -49,7 +49,6 @@ export abstract class TokenDefinition {
         return new Token(amount, this);
     }
 
-
     abstract blueprintAddress(): string;
     protected abstract calculateInternalTokenId(): Uint8Array;
 
@@ -113,7 +112,7 @@ export class Token {
     }
 
     toHTMLString(): string {
-        let result = `<span class="bp-amount">${this.amountString()}</span> `;
+        let result = `<span class="amount">${this.amountString()}</span> `;
         result += this.definition.toHTMLString();
         return result;
     }

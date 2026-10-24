@@ -5,11 +5,12 @@ transferring standard baskets.
 ## Parameters
 
 ```ts
-import type { Token } from "@blueprintsfi/blueprints.js";
+import { Token, TokenDefinition } from "@blueprintsfi/blueprints.js";
 
-type BasketParams = {
-    tokens: Token[];
-};
+declare class Basket extends TokenDefinition {
+    readonly tokens: readonly Token[];
+    constructor(tokens: Token[]);
+}
 ```
 
 `Basket` takes a single parameter – an array of positions to wrap. There must be
@@ -35,18 +36,10 @@ with the same token id and the same final amounts:
 import { Basket, ERC20, NativeToken } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const eth = new NativeToken(5n, {
-    decimals: 18n,
-});
+const eth = new NativeToken(18n).withAmount(5n);
+const erc20 = new ERC20("0x7B644715bea2e372f8d84Ae1a69534013E1E17a6", 18n).withAmount(10n);
 
-const erc20 = new ERC20(10n, {
-    address: "0x7B644715bea2e372f8d84Ae1a69534013E1E17a6",
-    decimals: 18n,
-});
-
-const basket = new Basket(10n, {
-    tokens: [eth, erc20],
-});
+const basket = new Basket([eth, erc20]).withAmount(10n);
 assert.strictEqual(
     basket.toString(),
    "10 Basket<[5 NativeToken<18>, 10 ERC20<0x7B644715bea2e372f8d84Ae1a69534013E1E17a6, 18>]>",

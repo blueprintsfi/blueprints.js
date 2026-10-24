@@ -63,12 +63,12 @@ export default class MultisigOracle extends Oracle {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-oracle">MultisigOracle</span>&lt;[`;
+        let result = `<span class="oracle">MultisigOracle</span>&lt;[`;
         for (let i = 0; i < this.addresses.length; i++) {
             if (i > 0) result += ", ";
-            result += `<span class="bp-address">${this.addresses[i]!}</span>`;
+            result += `<span class="address">${this.addresses[i]!}</span>`;
         }
-        result += `], <span class="bp-int">${this.threshold}</span>, `;
+        result += `], <span class="int">${this.threshold}</span>, `;
         return result + this.signedFeed.toHTMLString() + "&gt;";
     }
 }

@@ -26,7 +26,7 @@ export default class WithMetadata extends TokenDefinition {
     }
 
     override toHTMLString(): string {
-        let result = `<span class="bp-blueprint">WithMetadata</span>&lt;`;
+        let result = `<span class="blueprint">WithMetadata</span>&lt;`;
         result += `${this.token.toHTMLString()}, `;
         result += `${this.metadata.toHTMLString()}&gt;`;
         return result;

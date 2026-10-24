@@ -22,7 +22,7 @@ export class Tokenizer {
         }
     }
 
-    assertEOF() {
+    ensureEOF() {
         if (this.offset !== this.input.length) {
             throw new SyntaxError("Expected EOF");
         }

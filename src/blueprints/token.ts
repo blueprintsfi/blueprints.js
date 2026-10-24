@@ -99,9 +99,9 @@ export class Token {
 
     static fromString(input: string): Token {
         const tokenizer = new Tokenizer(input);
-        const tokenDefinition = parseToken(tokenizer);
+        const token = parseToken(tokenizer);
         tokenizer.ensureEOF();
-        return tokenDefinition;
+        return token;
     }
 
     amountString(): string {

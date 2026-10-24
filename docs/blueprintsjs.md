@@ -2,7 +2,7 @@
 Blueprints. It can be installed from npm.
 
 ```shell
-npm i @blueprintsfi/blueprints.ts
+npm i @blueprintsfi/blueprints.js
 ```
 
 Note that blueprints.ts does not provide functionality for interacting with the
@@ -45,7 +45,7 @@ returned by `weiToString`). `weiFromString` is not meant to parse rounded
 human-provided input.
 
 ```ts
-import { Fraction, weiToString, weiFromString } from "@blueprintsfi/blueprints.ts";
+import { Fraction, weiToString, weiFromString } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 assert.strictEqual(weiToString(1n, 10n), "0.1");
@@ -73,7 +73,7 @@ The `fromString` static method returns a `TokenDefinition` from its string
 representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.ts";
+import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = TokenDefinition.fromString("ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
@@ -89,7 +89,7 @@ assert.strictEqual(erc20.decimals, 18n);
 Returns the token definition's string representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.ts";
+import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -110,7 +110,7 @@ in `<span>` tags with different classes:
 - `oracle` – for oracle names.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.ts";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -126,7 +126,7 @@ Returns the token's [wei per unit](#wei-amounts-human-readable-amounts) as
 a [`Fraction`](#fractions).
 
 ```ts
-import { ERC20, Fraction } from "@blueprintsfi/blueprints.ts";
+import { ERC20, Fraction } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -158,7 +158,7 @@ must be in the strict format accepted by
 [`weiFromString`](#wei-amounts-human-readable-amounts).
 
 ```ts
-import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.ts";
+import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -176,7 +176,7 @@ takes a single argument: the [wei amount](#wei-amounts-human-readable-amounts)
 as a `bigint`.
 
 ```ts
-import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.ts";
+import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -199,7 +199,7 @@ amount. The only way to obtain an instance of this class is to use the
 The `fromString` static method returns a `Token` from its string representation.
 
 ```ts
-import { Token, ERC20 } from "@blueprintsfi/blueprints.ts";
+import { Token, ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = Token.fromString("10 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
@@ -217,7 +217,7 @@ assert.strictEqual(erc20.weiAmount, 10n * 10n ** 18n);
 Returns the token's string representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.ts";
+import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -232,7 +232,7 @@ Returns the token's string representation, with certain parts wrapped in
 [`TokenDefinition.prototype.toHTMLString()`](#tohtmlstring) for details.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.ts";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -254,7 +254,7 @@ Returns the token's [human-readable amount](#wei-amounts-human-readable-amounts)
 as a `Fraction`.
 
 ```ts
-import { TokenDefinition, ERC20, Fraction } from "@blueprintsfi/blueprints.ts";
+import { TokenDefinition, ERC20, Fraction } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -272,7 +272,7 @@ Returns the token's [wei amount](#wei-amounts-human-readable-amounts) as a
 `bigint`.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.ts";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -287,7 +287,7 @@ Returns the human-readable amount as a string. It is equivalent to calling
 `weiToString(token.weiAmount, token.definition.weiPerUnit)`.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.ts";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -309,14 +309,15 @@ The `fromString` static method returns an `Oracle` from its string
 representation. 
 
 ```ts
-import { Oracle, UnsupportedOracle } from "@blueprintsfi/blueprints.ts";
+import { Oracle, UnsupportedOracle } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const oracle = Oracle.fromString("UnsupportedOracle<0xBFFeA64641Ba47AD959ae1D53C9c2C24BC5cE4d1, 0x24e2f8ffb75ed49e89a9a2208f31d4186bf8e50a60c2868ac9073d0ccb69d2dc>");
+const input = "UnsupportedOracle<0xBFFeA64641Ba47AD959ae1D53C9c2C24BC5cE4d1, 0x24e2f8ffb75ed49e89a9a2208f31d4186bf8e50a60c2868ac9073d0ccb69d2dc>";
+const oracle = Oracle.fromString(input);
 assert(oracle instanceof UnsupportedOracle);
-assert.strictEqual(UnsupportedOracle.prototype instanceof Oracle);
+assert(UnsupportedOracle.prototype instanceof Oracle);
 
-assert.strictEqual(oracle.toString(), representation);
+assert.strictEqual(oracle.toString(), input);
 assert.strictEqual(oracle.address(), "0xBFFeA64641Ba47AD959ae1D53C9c2C24BC5cE4d1");
 assert.strictEqual(oracle.feedId().length, 32);
 ```
@@ -356,7 +357,7 @@ Represents bytes that have no special meaning. The constructor takes either a
 hex-encoded buffer as string (without `0x` prefix) or `Uint8Array`.
 
 ```ts
-import { MultisigOracle, RawBytes } from "@blueprintsfi/blueprints.ts";
+import { MultisigOracle, RawBytes } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const feedId = "e53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af";
@@ -375,7 +376,7 @@ Represents bytes that should be interpreted as a string. The string can contain
 only printable ASCII characters (including space) other than `"` and `\`.
 
 ```ts
-import { HashedBytes, MultisigOracle, StringBytes } from "@blueprintsfi/blueprints.ts";
+import { HashedBytes, MultisigOracle, StringBytes } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const feedId = "e53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af";
@@ -398,7 +399,7 @@ map. Keys and values can contain only printable ASCII characters (including
 space) other than `"` and `\`.
 
 ```ts
-import { MapBytes, WithMetadata, NativeToken } from "@blueprintsfi/blueprints.ts";
+import { MapBytes, WithMetadata, NativeToken } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 // The `MapBytes` constructor takes `Record<string, string>` or `Map<string, string>`.
@@ -429,7 +430,7 @@ Represents bytes that are the Keccak-256 hash of some other bytes. The construct
 takes another `Bytes` object.
 
 ```ts
-import { HashedBytes, MapBytes, MultisigOracle } from "@blueprintsfi/blueprints.ts";
+import { HashedBytes, MapBytes, MultisigOracle } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const feedId = "e53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af";

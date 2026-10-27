@@ -28,7 +28,6 @@ export type PredictionPoint = {
 
 export type PredictionConstraint = {
     readonly oracle: Oracle;
-    readonly initialValue: bigint;
     readonly points: readonly Readonly<PredictionPoint>[];
 };
 
@@ -42,12 +41,17 @@ function validateUint256(value: bigint, name: string) {
     }
 }
 
-function calculateScale(initialValue: bigint, points: PredictionPoint[]): Fraction {
-    validateUint256(initialValue, "initialValue");
-
-    if (points.length === 0) {
+function calculateScale(points: PredictionPoint[]): Fraction {
+    const length = points.length;
+    if (length === 0 || points[0]!.x !== 0n) {
+        throw new Error("First point of Prediction payoff must have 'x' equal to 0");
+    }
+    if (length === 1) {
         throw new Error("Payoff of Prediction must not be constant");
     }
+
+    const initialValue = points[0]!.y;
+    validateUint256(initialValue, "y");
 
     let multiplier = 1n;
     let divisor = initialValue;
@@ -56,23 +60,24 @@ function calculateScale(initialValue: bigint, points: PredictionPoint[]): Fracti
     let previousY = initialValue;
     let previousSlopeNumerator: bigint | undefined;
     let previousSlopeDenominator: bigint | undefined;
-    for (const { x, y } of points) {
+    for (let i = 1; i < length; i++) {
+        const { x, y } = points[i]!;
         validateUint256(x, "x");
         validateUint256(y, "y");
 
         const deltaY = y - previousY;
         const deltaX = x - previousX;
         if (deltaX <= 0n) {
-            throw new Error("'x' coordinates of points must be positive and strictly increasing");
+            throw new Error("'x' coordinates of points must be strictly increasing");
         }
 
         const gcd = calculateGcd(abs(deltaY), deltaX);
         const slopeNumerator = deltaY / gcd;
         const slopeDenominator = deltaX / gcd;
 
-        if (previousSlopeNumerator! !== undefined &&
+        if (previousSlopeNumerator !== undefined &&
             previousSlopeNumerator === slopeNumerator &&
-            previousSlopeDenominator! === slopeDenominator)
+            previousSlopeDenominator === slopeDenominator)
         {
             throw new Error("Consecutive slopes of Prediction payoff must differ");
         }
@@ -91,18 +96,22 @@ function calculateScale(initialValue: bigint, points: PredictionPoint[]): Fracti
     }
 
     const scale = new Fraction(multiplier, divisor);
-    validateScale(initialValue, points, scale);
+    validateScale(points, scale);
     return scale;
 }
 
-function validateScale(initialValue: bigint, points: PredictionPoint[], scale: Fraction): void {
+function validateScale(points: PredictionPoint[], scale: Fraction): void {
+    const { y: initialValue } = points[0]!;
     if (scale.mul(initialValue).toBigInt() > UINT256_MAX) {
         throw new Error("Normalized Prediction payoff must fit in a 256-bit unsigned integer");
     }
 
+    const length = points.length;
+
     let previousX = 0n;
     let previousY = initialValue;
-    for (const { x, y } of points) {
+    for (let i = 1; i < length; i++) {
+        const { x, y } = points[i]!;
         const slope = scale.mul(new Fraction(y - previousY, x - previousX)).toBigInt();
         if (slope < INT256_MIN || slope > INT256_MAX) {
             throw new Error("Normalized slopes of Prediction payoff must fit in int256");
@@ -120,18 +129,20 @@ function validateScale(initialValue: bigint, points: PredictionPoint[], scale: F
 function payoffHash(constraint: PredictionConstraint, scale: Fraction): Uint8Array {
     const { points } = constraint;
     const { length } = points;
+    const scaledInitialValue = points[0]!.y;
 
-    const initialValue = scale.mul(constraint.initialValue).toBigInt();
-    const buffer = new Uint8Array(0x80 + 0x40 * length);
+    const initialValue = scale.mul(scaledInitialValue).toBigInt();
+    const buffer = new Uint8Array(0x80 + 0x40 * (length - 1));
     buffer.set(numberToBytesBE(0x20n, 0x20));
     buffer.set(numberToBytesBE(initialValue, 0x20), 0x20);
     buffer.set(numberToBytesBE(0x40n, 0x20), 0x40);
-    buffer.set(numberToBytesBE(BigInt(length), 0x20), 0x60);
+    buffer.set(numberToBytesBE(BigInt(length - 1), 0x20), 0x60);
 
     let offset = 0x80;
     let previousX = 0n;
-    let previousY = constraint.initialValue;
-    for (const { x, y } of points) {
+    let previousY = scaledInitialValue;
+    for (let i = 1; i < length; i++) {
+        const { x, y } = points[i]!;
         const deltaX = x - previousX;
         const slope = scale.mul(new Fraction(y - previousY, deltaX)).toBigInt();
         buffer.set(int256ToBytes(slope), offset);
@@ -164,16 +175,15 @@ export default class Prediction extends TokenDefinition {
         const constraintsCopy: PredictionConstraint[] = [];
         const scales: Fraction[] = [];
         let weiPerUnit = new Fraction(collateral.weiAmount, 1n);
-        for (const { oracle, initialValue, points } of constraints) {
+        for (const { oracle, points } of constraints) {
             const pointsCopy = points.map(({ x, y }) => ({ x, y }));
 
-            const scale = calculateScale(initialValue, pointsCopy);
+            const scale = calculateScale(pointsCopy);
             weiPerUnit = weiPerUnit.div(scale).normalize();
             scales.push(scale);
 
             constraintsCopy.push({
                 oracle,
-                initialValue,
                 points: pointsCopy
             });
         }
@@ -234,8 +244,8 @@ export default class Prediction extends TokenDefinition {
 
         const { length } = this.constraints;
         for (let i = 0; i < length; i++) {
-            const { oracle, initialValue, points } = this.constraints[i]!;
-            result += `(${oracle.toString()}, ${initialValue}, [`;
+            const { oracle, points } = this.constraints[i]!;
+            result += `(${oracle.toString()}, [`;
             for (let j = 0; j < points.length; j++) {
                 const { x, y } = points[j]!;
                 result += `(${x}, ${y})`;
@@ -254,9 +264,8 @@ export default class Prediction extends TokenDefinition {
 
         const { length } = this.constraints;
         for (let i = 0; i < length; i++) {
-            const { oracle, initialValue, points } = this.constraints[i]!;
-            result += `(${oracle.toHTMLString()}, `;
-            result += `<span class="int">${initialValue}</span>, [`;
+            const { oracle, points } = this.constraints[i]!;
+            result += `(${oracle.toHTMLString()}, [`;
             for (let j = 0; j < points.length; j++) {
                 const { x, y } = points[j]!;
                 result += `(<span class="int">${x}</span>, <span class="int">${y}</span>)`;
@@ -278,8 +287,6 @@ function parsePrediction(tokenizer: Tokenizer): Prediction {
     while (true) {
         tokenizer.mustConsume("(");
         const oracle = parseOracle(tokenizer);
-        tokenizer.mustConsume(", ");
-        const initialValue = parseInteger(tokenizer);
         tokenizer.mustConsume(", [");
 
         const points: PredictionPoint[] = [];
@@ -296,7 +303,7 @@ function parsePrediction(tokenizer: Tokenizer): Prediction {
             }
         }
 
-        constraints.push({ oracle, initialValue, points });
+        constraints.push({ oracle, points });
 
         tokenizer.mustConsume(")");
         if (tokenizer.consume("]")) break;
@@ -320,28 +327,6 @@ export function yesToken(collateral: Token, oracle: Oracle): Prediction {
  */
 export function noToken(collateral: Token, oracle: Oracle): Prediction {
     return rangeToken(collateral, oracle, 0n, 1n);
-}
-
-export type ParlayCondition = {
-    oracle: Oracle;
-    answer: boolean;
-};
-
-/**
- * Pays out the collateral if every oracle resolves to the required answer, where a value of at
- * least 1 is interpreted as true and 0 as false.
- */
-export function parlayToken(
-    collateral: Token,
-    conditions: readonly Readonly<ParlayCondition>[],
-): Prediction {
-    return new Prediction(collateral, conditions.map(({ oracle, answer }) => {
-        if (answer) {
-            return rangeConstraint({ oracle, rangeStart: 1n });
-        } else {
-            return rangeConstraint({ oracle, rangeStart: 0n, rangeEnd: 1n });
-        }
-    }));
 }
 
 export type RangeCondition = {
@@ -368,7 +353,7 @@ function rangeConstraint(
         throw new Error("Range must not include every possible oracle response");
     }
 
-    const points: PredictionPoint[] = [];
+    const points: PredictionPoint[] = [{ x: 0n, y: rangeStart === 0n ? 1n : 0n }];
     if (rangeStart > 1n) points.push({ x: rangeStart - 1n, y: 0n });
     if (rangeStart > 0n) points.push({ x: rangeStart, y: 1n });
     if (!isSuffix) {
@@ -376,7 +361,29 @@ function rangeConstraint(
         points.push({ x: rangeEnd, y: 0n });
     }
 
-    return { oracle, initialValue: rangeStart === 0n ? 1n : 0n, points };
+    return { oracle, points };
+}
+
+export type ParlayCondition = {
+    oracle: Oracle;
+    answer: boolean;
+};
+
+/**
+ * Pays out the collateral if every oracle resolves to the required answer, where a value of at
+ * least 1 is interpreted as true and 0 as false.
+ */
+export function parlayToken(
+    collateral: Token,
+    conditions: readonly Readonly<ParlayCondition>[],
+): Prediction {
+    return new Prediction(collateral, conditions.map(({ oracle, answer }) => {
+        if (answer) {
+            return rangeConstraint({ oracle, rangeStart: 1n });
+        } else {
+            return rangeConstraint({ oracle, rangeStart: 0n, rangeEnd: 1n });
+        }
+    }));
 }
 
 /**
@@ -410,7 +417,7 @@ export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Pr
     if (max < 1n || max > UINT256_MAX) {
         throw new Error("'max' must be a positive 256-bit unsigned integer");
     }
-    return new Prediction(collateral, [{ oracle, initialValue: 0n, points: [{ x: max, y: max }] }]);
+    return new Prediction(collateral, [{ oracle, points: [{ x: 0n, y: 0n }, { x: max, y: max }] }]);
 }
 
 /**
@@ -419,8 +426,7 @@ export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Pr
 export function oraclePayoff(
     collateral: Token,
     oracle: Oracle,
-    initialValue: bigint,
     points: readonly Readonly<PredictionPoint>[],
 ): Prediction {
-    return new Prediction(collateral, [{ oracle, initialValue, points }]);
+    return new Prediction(collateral, [{ oracle, points }]);
 }

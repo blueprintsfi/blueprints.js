@@ -1,4 +1,4 @@
-import { parseOracle, Tokenizer } from "../parser";
+import { parseOracle, Tokenizer } from "../parser.js";
 
 export default abstract class Oracle {
     private cachedFeedId: Uint8Array | null = null;

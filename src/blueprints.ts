@@ -6,7 +6,14 @@ export {
     default as Prediction,
     type PredictionConstraint,
     type PredictionPoint,
+    type ParlayCondition,
+    type RangeCondition,
+    linearPayoff,
     noToken,
+    oraclePayoff,
+    parlayToken,
+    rangeParlayToken,
+    rangeToken,
     yesToken,
 } from "./blueprints/Prediction.js";
 export { default as WithMetadata } from "./blueprints/WithMetadata.js";

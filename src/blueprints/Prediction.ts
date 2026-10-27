@@ -13,6 +13,7 @@ import {
     INT256_MAX,
     INT256_MIN,
     UINT256_MAX,
+    _2_TO_256,
     abs,
     calculateGcd,
     compareIds,
@@ -311,12 +312,115 @@ tokenDefinitionParsers.set(Prediction.name, parsePrediction);
  * Pays out the collateral if the oracle resolves to a value of at least 1.
  */
 export function yesToken(collateral: Token, oracle: Oracle): Prediction {
-    return new Prediction(collateral, [{ oracle, initialValue: 0n, points: [{ x: 1n, y: 1n }] }]);
+    return rangeToken(collateral, oracle, 1n);
 }
 
 /**
  * Pays out the collateral if the oracle resolves to 0.
  */
 export function noToken(collateral: Token, oracle: Oracle): Prediction {
-    return new Prediction(collateral, [{ oracle, initialValue: 1n, points: [{ x: 1n, y: 0n }] }]);
+    return rangeToken(collateral, oracle, 0n, 1n);
+}
+
+export type ParlayCondition = {
+    oracle: Oracle;
+    answer: boolean;
+};
+
+/**
+ * Pays out the collateral if every oracle resolves to the required answer, where a value of at
+ * least 1 is interpreted as true and 0 as false.
+ */
+export function parlayToken(
+    collateral: Token,
+    conditions: readonly Readonly<ParlayCondition>[],
+): Prediction {
+    return new Prediction(collateral, conditions.map(({ oracle, answer }) => {
+        if (answer) {
+            return rangeConstraint({ oracle, rangeStart: 1n });
+        } else {
+            return rangeConstraint({ oracle, rangeStart: 0n, rangeEnd: 1n });
+        }
+    }));
+}
+
+export type RangeCondition = {
+    oracle: Oracle;
+    rangeStart: bigint;
+    rangeEnd?: bigint;
+};
+
+function rangeConstraint(
+    { oracle, rangeStart, rangeEnd }: Readonly<RangeCondition>,
+): PredictionConstraint {
+    validateUint256(rangeStart, "rangeStart");
+    if (rangeEnd !== undefined) {
+        if (rangeEnd <= rangeStart) {
+            throw new Error("'rangeStart' must be less than 'rangeEnd'");
+        }
+        if (rangeEnd > _2_TO_256) {
+            throw new Error("'rangeEnd' must be in range [1, 2^256]");
+        }
+    }
+
+    const isSuffix = rangeEnd === undefined || rangeEnd === _2_TO_256;
+    if (isSuffix && rangeStart === 0n) {
+        throw new Error("Range must not include every possible oracle response");
+    }
+
+    const points: PredictionPoint[] = [];
+    if (rangeStart > 1n) points.push({ x: rangeStart - 1n, y: 0n });
+    if (rangeStart > 0n) points.push({ x: rangeStart, y: 1n });
+    if (!isSuffix) {
+        if (rangeEnd - 1n > rangeStart) points.push({ x: rangeEnd - 1n, y: 1n });
+        points.push({ x: rangeEnd, y: 0n });
+    }
+
+    return { oracle, initialValue: rangeStart === 0n ? 1n : 0n, points };
+}
+
+/**
+ * Pays out the collateral if the oracle resolves to a value in [rangeStart, rangeEnd). A `rangeEnd`
+ * of 2^256 or undefined means the range is unbounded.
+ */
+export function rangeToken(
+    collateral: Token,
+    oracle: Oracle,
+    rangeStart: bigint,
+    rangeEnd?: bigint,
+): Prediction {
+    return new Prediction(collateral, [rangeConstraint({ oracle, rangeStart, rangeEnd })]);
+}
+
+/**
+ * Pays out the collateral if every oracle resolves to a value in its [rangeStart, rangeEnd) range.
+ * A `rangeEnd` of 2^256 or undefined means the range is unbounded.
+ */
+export function rangeParlayToken(
+    collateral: Token,
+    conditions: readonly Readonly<RangeCondition>[],
+): Prediction {
+    return new Prediction(collateral, conditions.map(rangeConstraint));
+}
+
+/**
+ * Pays out `collateral` multiplied by the oracle's response, capped at `max`.
+ */
+export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Prediction {
+    if (max < 1n || max > UINT256_MAX) {
+        throw new Error("'max' must be a positive 256-bit unsigned integer");
+    }
+    return new Prediction(collateral, [{ oracle, initialValue: 0n, points: [{ x: max, y: max }] }]);
+}
+
+/**
+ * Pays out `collateral` multiplied by the payoff function evaluated at the oracle's response.
+ */
+export function oraclePayoff(
+    collateral: Token,
+    oracle: Oracle,
+    initialValue: bigint,
+    points: readonly Readonly<PredictionPoint>[],
+): Prediction {
+    return new Prediction(collateral, [{ oracle, initialValue, points }]);
 }

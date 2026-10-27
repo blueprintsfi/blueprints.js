@@ -2,6 +2,7 @@ import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
 
 export const UINT256_MAX = (1n << 256n) - 1n;
+export const _2_TO_256 = (1n << 256n);
 export const INT256_MIN = -(1n << 255n);
 export const INT256_MAX = (1n << 255n) - 1n;
 

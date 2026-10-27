@@ -1,19 +1,8 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import { parseToken, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
-import { calculateGcd, Fraction, numberToBytesBE } from "../utils.js";
+import { calculateGcd, compareIds, Fraction, numberToBytesBE, UINT256_MAX } from "../utils.js";
 import { Token, TokenDefinition } from "./token.js";
-
-const MAX_AMOUNT = (1n << 256n) - 1n;
-
-function compareIds(lhs: Uint8Array, rhs: Uint8Array): number {
-    for (let i = 0; i < 32; i++) {
-        if (lhs[i]! !== rhs[i]!) {
-            return lhs[i]! - rhs[i]!;
-        }
-    }
-    return 0;
-}
 
 type AggregateAmounts = {
     tokenId: Uint8Array;
@@ -34,8 +23,8 @@ function aggregateAmounts(tokens: readonly Token[]): AggregateAmounts {
             });
         } else {
             const amount = result[index]!.weiAmount += token.weiAmount;
-            if (amount > MAX_AMOUNT) {
-                throw new Error("Amount too large");
+            if (amount > UINT256_MAX) {
+                throw new Error("Amount in Basket too large");
             }
         }
     }

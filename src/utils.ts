@@ -1,6 +1,10 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
 
+export const UINT256_MAX = (1n << 256n) - 1n;
+export const INT256_MIN = -(1n << 255n);
+export const INT256_MAX = (1n << 255n) - 1n;
+
 const textEncoder = new TextEncoder();
 
 export function validateAddress(address: string): void {
@@ -22,7 +26,6 @@ function isAddressValid(address: string): boolean {
     for (let i = 0; i < 40; i++) {
         const c = address.charCodeAt(i + 2);
         if (c <= 57) continue;
-        // Each address character uses one hash nibble's high bit (EIP-55).
         const uppercase = (hash[i >> 1]! & (i % 2 === 0 ? 0x80 : 0x08)) !== 0;
         if (uppercase !== (c < 97)) return false;
     }
@@ -50,15 +53,30 @@ export function numberToBytesBE(number: bigint, length: number): Uint8Array {
     return hexToBytes(number.toString(16).padStart(2 * length, "0"));
 }
 
+export function compareIds(lhs: Uint8Array, rhs: Uint8Array): number {
+    for (let i = 0; i < 32; i++) {
+        if (lhs[i]! !== rhs[i]!) {
+            return lhs[i]! - rhs[i]!;
+        }
+    }
+    return 0;
+}
+
 export function calculateGcd(a: bigint, b: bigint) {
     while (b !== 0n) [a, b] = [b, a % b];
     return a;
 }
 
+export function abs(value: bigint): bigint {
+    return value < 0n ? -value : value;
+}
+
 export class Fraction {
-    constructor(public readonly numerator: bigint, public readonly denominator: bigint) {
-        if (numerator < 0n || denominator <= 0n) {
-            throw new Error("Invalid fraction");
+    constructor(readonly numerator: bigint, readonly denominator: bigint) {
+        if (denominator === 0n) throw new Error("Invalid fraction");
+        if (denominator < 0n) {
+            this.numerator *= -1n;
+            this.denominator *= -1n;
         }
     }
 
@@ -67,28 +85,25 @@ export class Fraction {
             other = new Fraction(other, 1n);
         }
 
-        return new Fraction(
-            this.numerator * other.numerator,
-            this.denominator * other.denominator,
-        ).normalize();
+        return new Fraction(this.numerator * other.numerator, this.denominator * other.denominator);
     }
 
-    div(divisor: Fraction | bigint): Fraction {
-        if (typeof divisor === "bigint") {
-            divisor = new Fraction(divisor, 1n);
+    div(other: Fraction | bigint): Fraction {
+        if (typeof other === "bigint") {
+            other = new Fraction(other, 1n);
         }
 
-        return this.mul(new Fraction(divisor.denominator, divisor.numerator)).normalize();
+        return new Fraction(this.numerator * other.denominator, this.denominator * other.numerator);
     }
 
     normalize(): Fraction {
-        const factor = calculateGcd(this.numerator, this.denominator);
-        return new Fraction(this.numerator / factor, this.denominator / factor);
+        const gcd = calculateGcd(abs(this.numerator), this.denominator);
+        return new Fraction(this.numerator / gcd, this.denominator / gcd);
     }
 
     toBigInt(): bigint {
-        if (this.numerator % this.denominator != 0n) {
-            throw new Error("Fraction must represent an integer");
+        if (this.numerator % this.denominator !== 0n) {
+            throw new Error("Fraction is not an integer");
         }
 
         return this.numerator / this.denominator;
@@ -99,6 +114,9 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     if (typeof weiPerUnit === "bigint") {
         weiPerUnit = new Fraction(weiPerUnit, 1n);
     }
+    if (weiAmount < 0n) throw new Error("Wei amount must be non-negative");
+    if (weiPerUnit.numerator <= 0n) throw new Error("Wei per unit must be positive");
+
     const scaledAmount = weiPerUnit.denominator * weiAmount;
     if (scaledAmount % weiPerUnit.numerator === 0n) {
         return (scaledAmount / weiPerUnit.numerator).toString();
@@ -146,6 +164,8 @@ export function weiFromString(input: string, weiPerUnit: Fraction | bigint): big
     if (typeof weiPerUnit === "bigint") {
         weiPerUnit = new Fraction(weiPerUnit, 1n);
     }
+    if (weiPerUnit.numerator <= 0n) throw new Error("Wei per unit must be positive");
+
     const stripped = input.startsWith("~") ? input.slice(1) : input;
     const dotIndex = stripped.indexOf(".");
 

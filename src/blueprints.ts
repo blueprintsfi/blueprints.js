@@ -3,14 +3,12 @@ export { default as NativeToken } from "./blueprints/NativeToken.js";
 export { default as ERC20 } from "./blueprints/ERC20.js";
 export { default as Basket } from "./blueprints/Basket.js";
 export {
-    default as ComposablePrediction,
-    type Constraint as ComposablePredictionConstraint,
+    default as Prediction,
+    type PredictionConstraint,
+    type PredictionPoint,
     noToken,
     yesToken,
-    isBinaryPrediction,
-    isNoToken,
-    isYesToken,
-} from "./blueprints/ComposablePrediction.js";
+} from "./blueprints/Prediction.js";
 export { default as WithMetadata } from "./blueprints/WithMetadata.js";
 export { default as UnsupportedBlueprint  } from "./blueprints/UnsupportedBlueprint.js";
 export { default as UnknownBlueprint } from "./blueprints/UnknownBlueprint.js";

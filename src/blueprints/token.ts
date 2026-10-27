@@ -1,14 +1,12 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
 import { Tokenizer, parseToken, parseTokenDefinition } from "../parser.js";
-import { Fraction, weiFromString, weiToString } from "../utils.js";
+import { Fraction, UINT256_MAX, weiFromString, weiToString } from "../utils.js";
 
 type Cache = {
     internalTokenId: Uint8Array | null;
     externalTokenId: Uint8Array | null;
 };
-
-const MAX_AMOUNT = (1n << 256n) - 1n;
 
 export abstract class TokenDefinition {
     private _weiPerUnit: Fraction;
@@ -83,13 +81,13 @@ export abstract class TokenDefinition {
 
 export class Token {
     private constructor(private _weiAmount: bigint, readonly definition: TokenDefinition) {
-        if (_weiAmount < 0n || _weiAmount > MAX_AMOUNT) {
+        if (_weiAmount < 0n || _weiAmount > UINT256_MAX) {
             throw new Error("Amount out of range");
         }
     }
 
     get amount(): Fraction {
-        return new Fraction(this._weiAmount, 1n).div(this.definition.weiPerUnit);
+        return new Fraction(this._weiAmount, 1n).div(this.definition.weiPerUnit).normalize();
     }
 
     get weiAmount() {

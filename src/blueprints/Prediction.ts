@@ -1,0 +1,323 @@
+
+import { keccak_256 } from "@noble/hashes/sha3.js";
+import ConstantOracle from "../oracles/ConstantOracle.js";
+import Oracle from "../oracles/Oracle.js";
+import {
+    type Tokenizer,
+    parseInteger,
+    parseOracle,
+    parseToken,
+    tokenDefinitionParsers,
+} from "../parser.js";
+import {
+    Fraction,
+    INT256_MAX,
+    INT256_MIN,
+    UINT256_MAX,
+    abs,
+    calculateGcd,
+    compareIds,
+    numberToBytesBE,
+} from "../utils.js";
+import { Token, TokenDefinition } from "./token.js";
+
+export type PredictionPoint = {
+    x: bigint;
+    y: bigint;
+};
+
+export type PredictionConstraint = {
+    readonly oracle: Oracle;
+    readonly initialValue: bigint;
+    readonly points: readonly Readonly<PredictionPoint>[];
+};
+
+function int256ToBytes(value: bigint): Uint8Array {
+    return numberToBytesBE(value < 0n ? value + (1n << 256n) : value, 0x20);
+}
+
+function validateUint256(value: bigint, name: string) {
+    if (value < 0n || value > UINT256_MAX) {
+        throw new Error(`'${name}' must be a 256-bit unsigned integer`);
+    }
+}
+
+function calculateScale(initialValue: bigint, points: PredictionPoint[]): Fraction {
+    validateUint256(initialValue, "initialValue");
+
+    if (points.length === 0 && initialValue === 0n) {
+        throw new Error("Payoff of Prediction must not be zero everywhere");
+    }
+
+    let multiplier = 1n;
+    let divisor = initialValue;
+
+    let previousX = 0n;
+    let previousY = initialValue;
+    let previousSlopeNumerator: bigint | undefined;
+    let previousSlopeDenominator: bigint | undefined;
+    for (const { x, y } of points) {
+        validateUint256(x, "x");
+        validateUint256(y, "y");
+
+        const deltaY = y - previousY;
+        const deltaX = x - previousX;
+        if (deltaX <= 0n) {
+            throw new Error("'x' coordinates of points must be positive and strictly increasing");
+        }
+
+        const gcd = calculateGcd(abs(deltaY), deltaX);
+        const slopeNumerator = deltaY / gcd;
+        const slopeDenominator = deltaX / gcd;
+
+        if (previousSlopeNumerator! !== undefined &&
+            previousSlopeNumerator === slopeNumerator &&
+            previousSlopeDenominator! === slopeDenominator)
+        {
+            throw new Error("Consecutive slopes of Prediction payoff must differ");
+        }
+
+        divisor = calculateGcd(divisor, abs(slopeNumerator));
+        multiplier *= slopeDenominator / calculateGcd(multiplier, slopeDenominator);
+
+        previousX = x;
+        previousY = y;
+        previousSlopeNumerator = slopeNumerator;
+        previousSlopeDenominator = slopeDenominator;
+    }
+
+    if (previousSlopeNumerator! === 0n) {
+        throw new Error("Last slope of Prediction payoff must not be zero");
+    }
+
+    const scale = new Fraction(multiplier, divisor);
+    validateScale(initialValue, points, scale);
+    return scale;
+}
+
+function validateScale(initialValue: bigint, points: PredictionPoint[], scale: Fraction): void {
+    if (scale.mul(initialValue).toBigInt() > UINT256_MAX) {
+        throw new Error("Normalized Prediction payoff must fit in a 256-bit unsigned integer");
+    }
+
+    let previousX = 0n;
+    let previousY = initialValue;
+    for (const { x, y } of points) {
+        const slope = scale.mul(new Fraction(y - previousY, x - previousX)).toBigInt();
+        if (slope < INT256_MIN || slope > INT256_MAX) {
+            throw new Error("Normalized slopes of Prediction payoff must fit in int256");
+        }
+
+        if (scale.mul(y).toBigInt() > UINT256_MAX) {
+            throw new Error("Normalized Prediction payoff must fit in a 256-bit unsigned integer");
+        }
+
+        previousX = x;
+        previousY = y;
+    }
+}
+
+function payoffHash(constraint: PredictionConstraint, scale: Fraction): Uint8Array {
+    const { points } = constraint;
+    const { length } = points;
+
+    const initialValue = scale.mul(constraint.initialValue).toBigInt();
+    const buffer = new Uint8Array(0x80 + 0x40 * length);
+    buffer.set(numberToBytesBE(0x20n, 0x20));
+    buffer.set(numberToBytesBE(initialValue, 0x20), 0x20);
+    buffer.set(numberToBytesBE(0x40n, 0x20), 0x40);
+    buffer.set(numberToBytesBE(BigInt(length), 0x20), 0x60);
+
+    let offset = 0x80;
+    let previousX = 0n;
+    let previousY = constraint.initialValue;
+    for (const { x, y } of points) {
+        const deltaX = x - previousX;
+        const slope = scale.mul(new Fraction(y - previousY, deltaX)).toBigInt();
+        buffer.set(int256ToBytes(slope), offset);
+        buffer.set(numberToBytesBE(deltaX, 0x20), offset + 0x20);
+
+        offset += 0x40;
+        previousX = x;
+        previousY = y;
+    }
+
+    return keccak_256(buffer);
+}
+
+export default class Prediction extends TokenDefinition {
+    static override name = "Prediction";
+    readonly constraints: readonly PredictionConstraint[];
+    private feedIds: Uint8Array[];
+    private constraintsOrder: number[];
+    private scales: Fraction[];
+
+    constructor(readonly collateral: Token, constraints: readonly PredictionConstraint[]) {
+        if (collateral.weiAmount === 0n) {
+            throw new Error("Collateral of Prediction must have non-zero amount");
+        }
+        const length = constraints.length;
+        if (length === 0) {
+            throw new Error("Prediction must have at least one constraint");
+        }
+
+        const constraintsCopy: PredictionConstraint[] = [];
+        const scales: Fraction[] = [];
+        let weiPerUnit = new Fraction(collateral.weiAmount, 1n);
+        for (const { oracle, initialValue, points } of constraints) {
+            const pointsCopy = points.map(({ x, y }) => ({ x, y }));
+
+            const scale = calculateScale(initialValue, pointsCopy);
+            weiPerUnit = weiPerUnit.div(scale).normalize();
+            scales.push(scale);
+
+            constraintsCopy.push({
+                oracle,
+                initialValue,
+                points: pointsCopy
+            });
+        }
+
+        super(weiPerUnit);
+        this.constraints = constraintsCopy;
+        this.scales = scales;
+
+        this.feedIds = [];
+        this.constraintsOrder = [];
+        for (let i = 0; i < length; i++) {
+            const wrapped = new ConstantOracle(this.constraints[i]!.oracle);
+            this.feedIds.push(wrapped.feedId());
+            this.constraintsOrder.push(i);
+        }
+
+        this.constraintsOrder.sort((lhs, rhs) => {
+            return compareIds(this.feedIds[lhs]!, this.feedIds[rhs]!);
+        });
+
+        for (let i = 1; i < length; i++) {
+            const previous = this.constraintsOrder[i - 1]!;
+            const current = this.constraintsOrder[i]!;
+            if (compareIds(this.feedIds[previous]!, this.feedIds[current]!) === 0) {
+                throw new Error("Duplicated feed ID in Prediction");
+            }
+        }
+    }
+
+    protected override calculateInternalTokenId() {
+        const length = this.constraints.length;
+
+        const buffer = new Uint8Array(0x60 + 0x40 * length);
+        buffer.set(numberToBytesBE(0x40n, 0x20));
+        buffer.set(this.collateral.definition.externalTokenId(), 0x20);
+        buffer.set(numberToBytesBE(BigInt(length), 0x20), 0x40);
+
+        let offset = 0x60;
+        for (const index of this.constraintsOrder) {
+            buffer.set(this.feedIds[index]!, offset);
+
+            const constraint = this.constraints[index]!;
+            const scale = this.scales[index]!;
+            buffer.set(payoffHash(constraint, scale), offset + 0x20);
+
+            offset += 0x40;
+        }
+
+        return keccak_256(buffer);
+    }
+
+    override blueprintAddress(): string {
+        return "0x034727215C779d73A466B32D74976333136D5738";
+    }
+
+    override toString(): string {
+        let result = `Prediction<${this.collateral.toString()}, [`;
+
+        const { length } = this.constraints;
+        for (let i = 0; i < length; i++) {
+            const { oracle, initialValue, points } = this.constraints[i]!;
+            result += `(${oracle.toString()}, ${initialValue}, [`;
+            for (let j = 0; j < points.length; j++) {
+                const { x, y } = points[j]!;
+                result += `(${x}, ${y})`;
+                if (j < points.length - 1) result += ", ";
+            }
+            result += "])";
+            if (i < length - 1) result += ", ";
+        }
+
+        return result + "]>";
+    }
+
+    override toHTMLString(): string {
+        let result = `<span class="blueprint">Prediction</span>&lt;`;
+        result += `${this.collateral.toHTMLString()}, [`;
+
+        const { length } = this.constraints;
+        for (let i = 0; i < length; i++) {
+            const { oracle, initialValue, points } = this.constraints[i]!;
+            result += `(${oracle.toHTMLString()}, `;
+            result += `<span class="int">${initialValue}</span>, [`;
+            for (let j = 0; j < points.length; j++) {
+                const { x, y } = points[j]!;
+                result += `(<span class="int">${x}</span>, <span class="int">${y}</span>)`;
+                if (j < points.length - 1) result += ", ";
+            }
+            result += "])";
+            if (i < length - 1) result += ", ";
+        }
+
+        return result + "]&gt;";
+    }
+}
+
+function parsePrediction(tokenizer: Tokenizer): Prediction {
+    const collateral = parseToken(tokenizer);
+    tokenizer.mustConsume(", [");
+
+    const constraints: PredictionConstraint[] = [];
+    while (true) {
+        tokenizer.mustConsume("(");
+        const oracle = parseOracle(tokenizer);
+        tokenizer.mustConsume(", ");
+        const initialValue = parseInteger(tokenizer);
+        tokenizer.mustConsume(", [");
+
+        const points: PredictionPoint[] = [];
+        if (!tokenizer.consume("]")) {
+            while (true) {
+                tokenizer.mustConsume("(");
+                const x = parseInteger(tokenizer);
+                tokenizer.mustConsume(", ");
+                const y = parseInteger(tokenizer);
+                tokenizer.mustConsume(")");
+                points.push({ x, y });
+                if (tokenizer.consume("]")) break;
+                tokenizer.mustConsume(", ");
+            }
+        }
+
+        constraints.push({ oracle, initialValue, points });
+
+        tokenizer.mustConsume(")");
+        if (tokenizer.consume("]")) break;
+        tokenizer.mustConsume(", ");
+    }
+
+    return new Prediction(collateral, constraints);
+}
+
+tokenDefinitionParsers.set(Prediction.name, parsePrediction);
+
+/**
+ * Pays out the collateral if the oracle resolves to a value of at least 1.
+ */
+export function yesToken(collateral: Token, oracle: Oracle): Prediction {
+    return new Prediction(collateral, [{ oracle, initialValue: 0n, points: [{ x: 1n, y: 1n }] }]);
+}
+
+/**
+ * Pays out the collateral if the oracle resolves to 0.
+ */
+export function noToken(collateral: Token, oracle: Oracle): Prediction {
+    return new Prediction(collateral, [{ oracle, initialValue: 1n, points: [{ x: 1n, y: 0n }] }]);
+}

@@ -1,4 +1,3 @@
-
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import ConstantOracle from "../oracles/ConstantOracle.js";
 import Oracle from "../oracles/Oracle.js";
@@ -45,8 +44,8 @@ function validateUint256(value: bigint, name: string) {
 function calculateScale(initialValue: bigint, points: PredictionPoint[]): Fraction {
     validateUint256(initialValue, "initialValue");
 
-    if (points.length === 0 && initialValue === 0n) {
-        throw new Error("Payoff of Prediction must not be zero everywhere");
+    if (points.length === 0) {
+        throw new Error("Payoff of Prediction must not be constant");
     }
 
     let multiplier = 1n;

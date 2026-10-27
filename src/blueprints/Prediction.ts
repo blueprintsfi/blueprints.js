@@ -411,13 +411,14 @@ export function rangeParlayToken(
 }
 
 /**
- * Pays out `collateral` multiplied by the oracle's response, capped at `max`.
+ * Pays out a share of `collateral` that grows linearly with the oracle's response, from nothing at
+ * 0 to the full `collateral` at `max` and above.
  */
 export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Prediction {
     if (max < 1n || max > UINT256_MAX) {
         throw new Error("'max' must be a positive 256-bit unsigned integer");
     }
-    return new Prediction(collateral, [{ oracle, points: [{ x: 0n, y: 0n }, { x: max, y: max }] }]);
+    return new Prediction(collateral, [{ oracle, points: [{ x: 0n, y: 0n }, { x: max, y: 1n }] }]);
 }
 
 /**

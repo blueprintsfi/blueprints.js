@@ -11,7 +11,7 @@
             "blueprints/NativeToken": "NativeToken",
             "blueprints/ERC20": "ERC20",
             "blueprints/Basket": "Basket",
-            "blueprints/ComposablePrediction": "ComposablePrediction",
+            "blueprints/Prediction": "Prediction",
             "blueprints/WithMetadata": "WithMetadata",
             "blueprints/UnsupportedBlueprint": "UnsupportedBlueprint",
             "blueprints/UnknownBlueprint": "UnknownBlueprint"

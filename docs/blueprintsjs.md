@@ -29,8 +29,9 @@ unit. For example, `10 ERC20<0x0ABb8fFa90597b00a3E1927d78dbaBe23573ED12, 18>`
 represents a token with wei per unit of $10^{18}$. The `10` in this format is
 the human-readable amount. The wei amount of this token is $10^{19}$.
 
-Currently, wei per unit of all tokens instantiable by this library are integers.
-However, it is planned to introduce Blueprints for which this is not the case.
+Wei per unit doesn't have to be an integer. Currently, only
+[`Prediction`](/blueprints/Prediction) tokens can have non-integer wei per
+units.
 
 The library provides two helper functions for converting between human-readable
 amounts and wei amounts: `weiToString` and `weiFromString`. The former takes a

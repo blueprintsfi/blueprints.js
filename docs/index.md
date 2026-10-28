@@ -5,14 +5,14 @@ Examples of tokens include:
   ETH) and burned to withdraw it,
 - `ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>` – can be minted by
   depositing ERC20 tokens with the given address and burned to withdraw them,
-- `ComposablePrediction<0.05 NativeToken<18>,
+- `Prediction<0.05 NativeToken<18>,
   [(MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf,
   0x663056E2C695Be0d593271513C6a0794Bc7E6E6F,
   0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({ "market": "BTC",
-  "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, 1, 0)]>` –
-  can be exchanged for `0.05 NativeToken<18>` if at least 2 out of 3 signers
-  sign that the specified feed resolves to an integer between 1 and infinity
-  (anything but zero),
+  "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, [(0, 0),
+  (1, 1)])]>` – can be exchanged for `0.05 NativeToken<18>` if at least 2 out of
+  3 signers sign that the specified feed resolves to an integer between 1 and
+  infinity (anything but zero),
 - `WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but
   the price is down right now" }>` – wraps a position together with arbitrary
   bytes without changing the underlying token id.
@@ -60,9 +60,9 @@ This section provides an overview of the Blueprints architecture. Consult the
 
 ### Blueprints
 
-`NativeToken`, `ERC20`, and `ComposablePrediction` are examples of Blueprints.
-Each of them is implemented in a separate smart contract. Anyone can create and
-deploy their own Blueprint.
+`NativeToken`, `ERC20`, and `Prediction` are examples of Blueprints. Each of
+them is implemented in a separate smart contract. Anyone can create and deploy
+their own Blueprint.
 
 Each smart contract manages its own token space. Tokens minted by a Blueprint
 have a 256-bit *internal token ID*. The *external token ID* is calculated by

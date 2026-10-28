@@ -63,6 +63,9 @@ special kinds of `Prediction` tokens:
   linearly with the oracle's response, from nothing at 0 to the full
   `collateral` at `max` and above.
 
+For more information on this model, see [Multiverse
+Finance](https://www.paradigm.xyz/2025/05/multiverse-finance).
+
 ## Encoding Functions
 
 ###### In the Library
@@ -132,9 +135,6 @@ to 1 billion in the oracle's response will require the collateral's wei amount
 multiplied by the `Prediction`'s human-readable amount to be divisible by a
 billion, while a payoff up to ten thousand will only require it to be divisible
 by ten thousand.
-
-For more information on this model, see [Multiverse
-Finance](https://www.paradigm.xyz/2025/05/multiverse-finance).
 
 ## `yesToken()`, `noToken()`
 

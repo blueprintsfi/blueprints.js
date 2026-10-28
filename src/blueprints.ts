@@ -10,7 +10,6 @@ export {
     type RangeCondition,
     linearPayoff,
     noToken,
-    oraclePayoff,
     parlayToken,
     rangeParlayToken,
     rangeToken,

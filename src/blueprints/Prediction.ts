@@ -400,8 +400,8 @@ export function rangeToken(
 }
 
 /**
- * Pays out the collateral if every oracle resolves to a value in its [rangeStart, rangeEnd) range.
- * A `rangeEnd` of 2^256 or undefined means the range is unbounded.
+ * Pays out the collateral if each of the underlying oracles resolve to a value in its [rangeStart,
+ * rangeEnd) range. A `rangeEnd` of 2^256 or undefined means the range is unbounded.
  */
 export function rangeParlayToken(
     collateral: Token,
@@ -419,15 +419,4 @@ export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Pr
         throw new Error("'max' must be a positive 256-bit unsigned integer");
     }
     return new Prediction(collateral, [{ oracle, points: [{ x: 0n, y: 0n }, { x: max, y: 1n }] }]);
-}
-
-/**
- * Pays out `collateral` multiplied by the payoff function evaluated at the oracle's response.
- */
-export function oraclePayoff(
-    collateral: Token,
-    oracle: Oracle,
-    points: readonly Readonly<PredictionPoint>[],
-): Prediction {
-    return new Prediction(collateral, [{ oracle, points }]);
 }

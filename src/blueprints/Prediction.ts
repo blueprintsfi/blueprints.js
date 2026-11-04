@@ -2,6 +2,8 @@ import { keccak_256 } from "@noble/hashes/sha3.js";
 import ConstantOracle from "../oracles/ConstantOracle.js";
 import Oracle from "../oracles/Oracle.js";
 import {
+    type AstNode,
+    type AstNodeTokenDefinition,
     type Tokenizer,
     parseInteger,
     parseOracle,
@@ -239,43 +241,31 @@ export default class Prediction extends TokenDefinition {
         return "0x3b73Eed70a322Fbb110c3487484864ff8AB910F8";
     }
 
-    override toString(): string {
-        let result = `Prediction<${this.collateral.toString()}, [`;
+    override toAst(): AstNodeTokenDefinition {
+        const constraints: AstNode[] = this.constraints.map(({ oracle, points }) => ({
+            type: "tuple",
+            payload: [
+                oracle.toAst(),
+                {
+                    type: "array",
+                    payload: points.map(({ x, y }) => ({
+                        type: "tuple",
+                        payload: [
+                            { type: "integer", payload: x },
+                            { type: "integer", payload: y },
+                        ],
+                    })),
+                },
+            ],
+        }));
 
-        const { length } = this.constraints;
-        for (let i = 0; i < length; i++) {
-            const { oracle, points } = this.constraints[i]!;
-            result += `(${oracle.toString()}, [`;
-            for (let j = 0; j < points.length; j++) {
-                const { x, y } = points[j]!;
-                result += `(${x}, ${y})`;
-                if (j < points.length - 1) result += ", ";
-            }
-            result += "])";
-            if (i < length - 1) result += ", ";
-        }
-
-        return result + "]>";
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">Prediction</span>&lt;`;
-        result += `${this.collateral.toHTMLString()}, [`;
-
-        const { length } = this.constraints;
-        for (let i = 0; i < length; i++) {
-            const { oracle, points } = this.constraints[i]!;
-            result += `(${oracle.toHTMLString()}, [`;
-            for (let j = 0; j < points.length; j++) {
-                const { x, y } = points[j]!;
-                result += `(<span class="int">${x}</span>, <span class="int">${y}</span>)`;
-                if (j < points.length - 1) result += ", ";
-            }
-            result += "])";
-            if (i < length - 1) result += ", ";
-        }
-
-        return result + "]&gt;";
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: Prediction.name,
+                params: [this.collateral.toAst(), { type: "array", payload: constraints }],
+            },
+        };
     }
 }
 

@@ -1,4 +1,9 @@
-import { parseOracle, Tokenizer } from "../parser.js";
+import {
+    type AstNodeOracle,
+    astToString,
+    parseOracle,
+    Tokenizer,
+} from "../parser.js";
 
 export default abstract class Oracle {
     private cachedFeedId: Uint8Array | null = null;
@@ -20,6 +25,9 @@ export default abstract class Oracle {
         return oracle;
     }
 
-    abstract toString(): string;
-    abstract toHTMLString(): string;
+    abstract toAst(): AstNodeOracle;
+
+    toString(): string {
+        return astToString(this.toAst());
+    }
 }

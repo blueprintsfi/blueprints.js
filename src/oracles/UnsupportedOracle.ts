@@ -1,5 +1,11 @@
 import type { Bytes } from "../bytes.js";
-import { oracleParsers, parseAddress, parseBytes, type Tokenizer } from "../parser.js";
+import {
+    type AstNodeOracle,
+    oracleParsers,
+    parseAddress,
+    parseBytes,
+    type Tokenizer,
+} from "../parser.js";
 import Oracle from "./Oracle.js";
 
 export default class UnsupportedOracle extends Oracle {
@@ -21,14 +27,17 @@ export default class UnsupportedOracle extends Oracle {
         return this.oracleAddress;
     }
 
-    override toString(): string {
-        return `UnsupportedOracle<${this.oracleAddress}, ${this.feedIdBytes.toString()}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="oracle">UnsupportedOracle</span>&lt;`;
-        result += `<span class="address">${this.oracleAddress}</span>, `;
-        return result + this.feedIdBytes.toHTMLString() + "&gt;";
+    override toAst(): AstNodeOracle {
+        return {
+            type: "oracle",
+            payload: {
+                oracle: UnsupportedOracle.name,
+                params: [
+                    { type: "address", payload: this.oracleAddress },
+                    this.feedIdBytes.toAst(),
+                ],
+            },
+        };
     }
 }
 

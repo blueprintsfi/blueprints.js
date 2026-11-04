@@ -1,5 +1,11 @@
 import type { Bytes } from "../bytes.js";
-import { parseBytes, parseToken, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import {
+    type AstNodeTokenDefinition,
+    parseBytes,
+    parseToken,
+    tokenDefinitionParsers,
+    type Tokenizer,
+} from "../parser.js";
 import { Token, TokenDefinition } from "./token.js";
 
 export default class WithMetadata extends TokenDefinition {
@@ -21,15 +27,14 @@ export default class WithMetadata extends TokenDefinition {
         return this.token.definition.externalTokenId();
     }
 
-    override toString(): string {
-        return `WithMetadata<${this.token.toString()}, ${this.metadata.toString()}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">WithMetadata</span>&lt;`;
-        result += `${this.token.toHTMLString()}, `;
-        result += `${this.metadata.toHTMLString()}&gt;`;
-        return result;
+    override toAst(): AstNodeTokenDefinition {
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: WithMetadata.name,
+                params: [this.token.toAst(), this.metadata.toAst()],
+            },
+        };
     }
 }
 

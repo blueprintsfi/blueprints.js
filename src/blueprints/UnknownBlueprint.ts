@@ -1,5 +1,10 @@
 import type { Bytes } from "../bytes.js";
-import { parseBytes, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import {
+    type AstNodeTokenDefinition,
+    parseBytes,
+    tokenDefinitionParsers,
+    type Tokenizer,
+} from "../parser.js";
 import { TokenDefinition } from "./token.js";
 
 export default class UnknownBlueprint extends TokenDefinition {
@@ -24,14 +29,14 @@ export default class UnknownBlueprint extends TokenDefinition {
         return this.tokenId.bytes();
     }
 
-    override toString(): string {
-        return `UnknownBlueprint<${this.tokenId.toString()}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">UnknownBlueprint</span>&lt;`;
-        result += `${this.tokenId.toHTMLString()}&gt;`;
-        return result;
+    override toAst(): AstNodeTokenDefinition {
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: UnknownBlueprint.name,
+                params: [this.tokenId.toAst()],
+            },
+        };
     }
 }
 

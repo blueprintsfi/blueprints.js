@@ -1,12 +1,22 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
+import { hexToBytes } from "@noble/hashes/utils.js";
+import {
+    astToString,
+    type AstNodeBytes,
+    type AstNodeHashedBytes,
+    type AstNodeMapBytes,
+    type AstNodeRawBytes,
+    type AstNodeStringBytes,
+} from "./parser.js";
 
 export abstract class Bytes {
     abstract length(): number;
     abstract bytes(): Uint8Array;
+    abstract toAst(): AstNodeBytes;
 
-    abstract toString(): string;
-    abstract toHTMLString(): string;
+    toString(): string {
+        return astToString(this.toAst());
+    }
 }
 
 export class RawBytes extends Bytes {
@@ -29,12 +39,8 @@ export class RawBytes extends Bytes {
         return this.raw.length;
     }
 
-    override toString(): string {
-        return "0x" + bytesToHex(this.raw);
-    }
-
-    override toHTMLString(): string {
-        return `<span class="bytes">${this.toString()}</span>`;
+    override toAst(): AstNodeRawBytes {
+        return { type: "raw_bytes", payload: this.raw.slice() };
     }
 }
 
@@ -67,12 +73,8 @@ export class StringBytes extends Bytes {
         return this.string.length;
     }
 
-    override toString(): string {
-        return `"${this.string}"`;
-    }
-
-    override toHTMLString(): string {
-        return `"<span class="string">${this.string}</span>"`;
+    override toAst(): AstNodeStringBytes {
+        return { type: "string_bytes", payload: this.string };
     }
 }
 
@@ -80,7 +82,6 @@ export class MapBytes extends Bytes {
     readonly map: ReadonlyMap<string, string>;
     private encoded: Uint8Array | null = null;
     private cachedRaw: string | null = null;
-    private cachedHtml: string | null = null;
 
     constructor(map: Map<string, string> | Record<string, string>) {
         super();
@@ -113,45 +114,13 @@ export class MapBytes extends Bytes {
         return this.toString().length;
     }
 
-    override toString(): string {
-        if (this.map.size === 0) return "{}";
-        if (this.cachedRaw !== null) return this.cachedRaw;
-
-        let result = "{ ";
-        let isFirst = true;
-        for (const [key, value] of this.map) {
-            if (!isFirst) {
-                result += ", ";
-            } else {
-                isFirst = false;
-            }
-
-            result += `"${key}": "${value}"`;
-        }
-        result += " }";
-
-        return this.cachedRaw = result;
+    override toAst(): AstNodeMapBytes {
+        return { type: "map_bytes", payload: new Map(this.map) };
     }
 
-    override toHTMLString(): string {
-        if (this.map.size === 0) return "{}";
-        if (this.cachedHtml !== null) return this.cachedHtml;
-
-        let result = "{ ";
-        let isFirst = true;
-        for (const [key, value] of this.map) {
-            if (!isFirst) {
-                result += ", ";
-            } else {
-                isFirst = false;
-            }
-
-            result += `"<span class="string">${key}</span>": `;
-            result += `"<span class="string">${value}</span>"`;
-        }
-        result += " }";
-
-        return this.cachedHtml = result;
+    override toString(): string {
+        if (this.cachedRaw !== null) return this.cachedRaw;
+        return this.cachedRaw = super.toString();
     }
 }
 
@@ -173,11 +142,7 @@ export class HashedBytes extends Bytes {
         return 32;
     }
 
-    override toString(): string {
-        return `keccak256(${this.preimage.toString()})`;
-    }
-
-    override toHTMLString(): string {
-        return `<span class="func">keccak256</span>(${this.preimage.toHTMLString()})`;
+    override toAst(): AstNodeHashedBytes {
+        return { type: "hashed_bytes", payload: this.preimage.toAst() };
     }
 }

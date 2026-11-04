@@ -1,4 +1,4 @@
-import { hexToBytes } from "@noble/hashes/utils.js";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import type { Token, TokenDefinition } from "./blueprints/token.js";
 import { HashedBytes, MapBytes, RawBytes, StringBytes, type Bytes } from "./bytes.js";
 import Oracle from "./oracles/Oracle.js";
@@ -169,5 +169,142 @@ function parseMapBytes(tokenizer: Tokenizer): MapBytes {
             return new MapBytes(map);
         }
         tokenizer.mustConsume(",");
+    }
+}
+
+export type AstNode =
+    | AstNodeInteger
+    | AstNodeAddress
+    | AstNodeArray
+    | AstNodeTuple
+    | AstNodeBytes
+    | AstNodeToken
+    | AstNodeTokenDefinition
+    | AstNodeOracle;
+
+export type AstNodeBytes =
+    | AstNodeRawBytes
+    | AstNodeStringBytes
+    | AstNodeMapBytes
+    | AstNodeHashedBytes;
+
+export type AstNodeInteger = {
+    type: "integer";
+    payload: bigint;
+};
+
+export type AstNodeAddress = {
+    type: "address";
+    payload: string;
+};
+
+export type AstNodeArray = {
+    type: "array";
+    payload: AstNode[];
+};
+
+export type AstNodeTuple = {
+    type: "tuple";
+    payload: AstNode[];
+};
+
+export type AstNodeRawBytes = {
+    type: "raw_bytes";
+    payload: Uint8Array;
+};
+
+export type AstNodeStringBytes = {
+    type: "string_bytes";
+    payload: string;
+};
+
+export type AstNodeMapBytes = {
+    type: "map_bytes";
+    payload: Map<string, string>;
+};
+
+export type AstNodeHashedBytes = {
+    type: "hashed_bytes";
+    payload: AstNodeBytes;
+};
+
+export type AstNodeToken = {
+    type: "token";
+    payload: {
+        amount: string;
+        definition: AstNodeTokenDefinition;
+    };
+};
+
+export type AstNodeTokenDefinition = {
+    type: "token_definition";
+    payload: {
+        blueprint: string;
+        params: AstNode[];
+    };
+};
+
+export type AstNodeOracle = {
+    type: "oracle";
+    payload: {
+        oracle: string;
+        params: AstNode[];
+    };
+};
+
+function joinParams(params: readonly AstNode[], render: (node: AstNode) => string): string {
+    let result = "";
+    const { length } = params;
+    for (let i = 0; i < length; i++) {
+        result += render(params[i]!);
+        if (i < length - 1) result += ", ";
+    }
+    return result;
+}
+
+export function astToString(node: AstNode): string {
+    switch (node.type) {
+        case "integer":
+            return `${node.payload}`;
+        case "address":
+            return node.payload;
+        case "array":
+            return `[${joinParams(node.payload, astToString)}]`;
+        case "tuple":
+            return `(${joinParams(node.payload, astToString)})`;
+        case "raw_bytes":
+            return "0x" + bytesToHex(node.payload);
+        case "string_bytes":
+            return `"${node.payload}"`;
+        case "map_bytes": {
+            if (node.payload.size === 0) return "{}";
+
+            let result = "{ ";
+            let isFirst = true;
+            for (const [key, value] of node.payload) {
+                if (!isFirst) {
+                    result += ", ";
+                } else {
+                    isFirst = false;
+                }
+
+                result += `"${key}": "${value}"`;
+            }
+            return result + " }";
+        }
+        case "hashed_bytes":
+            return `keccak256(${astToString(node.payload)})`;
+        case "token": {
+            const { amount, definition } = node.payload;
+            return `${amount} ${astToString(definition)}`;
+        }
+        case "token_definition": {
+            const { blueprint, params } = node.payload;
+            return `${blueprint}<${joinParams(params, astToString)}>`;
+        }
+        case "oracle": {
+            const { oracle, params } = node.payload;
+            return `${oracle}<${joinParams(params, astToString)}>`;
+        }
     }
 }

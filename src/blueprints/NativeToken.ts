@@ -1,4 +1,9 @@
-import { parseInteger, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import {
+    type AstNodeTokenDefinition,
+    parseInteger,
+    tokenDefinitionParsers,
+    type Tokenizer,
+} from "../parser.js";
 import { TokenDefinition } from "./token.js";
 
 const zero = new Uint8Array(32);
@@ -26,14 +31,14 @@ export default class NativeToken extends TokenDefinition {
         return "0xF3F67A0F38BF0A61DD2D93ADf9B04753D39C631C";
     }
 
-    override toString(): string {
-        return `NativeToken<${this.decimals}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">NativeToken</span>&lt;`;
-        result += `<span class="int">${this.decimals}</span>&gt;`;
-        return result;
+    override toAst(): AstNodeTokenDefinition {
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: NativeToken.name,
+                params: [{ type: "integer", payload: this.decimals }],
+            },
+        };
     }
 }
 

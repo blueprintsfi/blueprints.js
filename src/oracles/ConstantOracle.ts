@@ -1,6 +1,6 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
-import { oracleParsers, parseOracle, type Tokenizer } from "../parser.js";
+import { type AstNodeOracle, oracleParsers, parseOracle, type Tokenizer } from "../parser.js";
 import Oracle from "./Oracle.js";
 
 export default class ConstantOracle extends Oracle {
@@ -21,14 +21,14 @@ export default class ConstantOracle extends Oracle {
         return "0x9F082c41045dEaCf53D5cfEF4b5b60edA38D95Af";
     }
 
-    override toString(): string {
-        return `ConstantOracle<${this.innerOracle.toString()}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="oracle">ConstantOracle</span>&lt;`;
-        result += `${this.innerOracle.toHTMLString()}&gt;`;
-        return result;
+    override toAst(): AstNodeOracle {
+        return {
+            type: "oracle",
+            payload: {
+                oracle: ConstantOracle.name,
+                params: [this.innerOracle.toAst()],
+            },
+        };
     }
 }
 

@@ -1,6 +1,11 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { parseToken, tokenDefinitionParsers, type Tokenizer } from "../parser.js";
+import {
+    type AstNodeTokenDefinition,
+    parseToken,
+    tokenDefinitionParsers,
+    type Tokenizer,
+} from "../parser.js";
 import { calculateGcd, compareIds, Fraction, numberToBytesBE, UINT256_MAX } from "../utils.js";
 import { Token, TokenDefinition } from "./token.js";
 
@@ -94,28 +99,14 @@ export default class Basket extends TokenDefinition {
         return "0x52B785358dDAff5B7A8C16b52f0C2f7C21f3eAa4";
     }
 
-    override toString(): string {
-        let result = "Basket<[";
-
-        const { length } = this.tokens;
-        for (let i = 0; i < length; i++) {
-            result += this.tokens[i]!.toString();
-            result += i === length - 1 ? "]>" : ", ";
-        }
-
-        return result;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">Basket</span>&lt;[`;
-
-        const { length } = this.tokens;
-        for (let i = 0; i < length; i++) {
-            result += this.tokens[i]!.toHTMLString();
-            result += i === length - 1 ? "]&gt;" : ", ";
-        }
-
-        return result;
+    override toAst(): AstNodeTokenDefinition {
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: Basket.name,
+                params: [{ type: "array", payload: this.tokens.map(token => token.toAst()) }],
+            },
+        };
     }
 }
 

@@ -1,5 +1,11 @@
 import { hexToBytes } from "@noble/hashes/utils.js";
-import { type Tokenizer, parseAddress, parseInteger, tokenDefinitionParsers } from "../parser.js";
+import {
+    type AstNodeTokenDefinition,
+    type Tokenizer,
+    parseAddress,
+    parseInteger,
+    tokenDefinitionParsers,
+} from "../parser.js";
 import { validateAddress } from "../utils.js";
 import { TokenDefinition } from "./token.js";
 
@@ -30,15 +36,17 @@ export default class ERC20 extends TokenDefinition {
         return "0x01B522c50242747c576717052FBA75e7fA2aa6a8";
     }
 
-    override toString(): string {
-        return `ERC20<${this.address}, ${this.decimals}>`;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="blueprint">ERC20</span>&lt;`;
-        result += `<span class="address">${this.address}</span>, `;
-        result += `<span class="int">${this.decimals}</span>&gt;`;
-        return result;
+    override toAst(): AstNodeTokenDefinition {
+        return {
+            type: "token_definition",
+            payload: {
+                blueprint: ERC20.name,
+                params: [
+                    { type: "address", payload: this.address },
+                    { type: "integer", payload: this.decimals },
+                ],
+            },
+        };
     }
 }
 

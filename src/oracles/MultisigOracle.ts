@@ -2,6 +2,7 @@ import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
 import type { Bytes } from "../bytes.js";
 import {
+    type AstNodeOracle,
     oracleParsers,
     parseAddress,
     parseBytes,
@@ -54,22 +55,24 @@ export default class MultisigOracle extends Oracle {
         return "0x1A939e6b7DbF9a9E3dC1215e8C7FF9BE6Db82939";
     }
 
-    override toString(): string {
-        let result = `MultisigOracle<[`;
-        result += `${this.addresses.join(", ")}], `;
-        result += `${this.threshold}, `;
-        result += `${ this.signedFeed.toString() }>`;
-        return result;
-    }
-
-    override toHTMLString(): string {
-        let result = `<span class="oracle">MultisigOracle</span>&lt;[`;
-        for (let i = 0; i < this.addresses.length; i++) {
-            if (i > 0) result += ", ";
-            result += `<span class="address">${this.addresses[i]!}</span>`;
-        }
-        result += `], <span class="int">${this.threshold}</span>, `;
-        return result + this.signedFeed.toHTMLString() + "&gt;";
+    override toAst(): AstNodeOracle {
+        return {
+            type: "oracle",
+            payload: {
+                oracle: MultisigOracle.name,
+                params: [
+                    {
+                        type: "array",
+                        payload: this.addresses.map(address => ({
+                            type: "address",
+                            payload: address,
+                        })),
+                    },
+                    { type: "integer", payload: this.threshold },
+                    this.signedFeed.toAst(),
+                ],
+            },
+        };
     }
 }
 

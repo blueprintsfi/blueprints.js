@@ -1,6 +1,13 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
-import { Tokenizer, parseToken, parseTokenDefinition } from "../parser.js";
+import {
+    type AstNodeToken,
+    type AstNodeTokenDefinition,
+    Tokenizer,
+    astToString,
+    parseToken,
+    parseTokenDefinition,
+} from "../parser.js";
 import { Fraction, UINT256_MAX, weiFromString, weiToString } from "../utils.js";
 
 type Cache = {
@@ -75,8 +82,11 @@ export abstract class TokenDefinition {
         return tokenDefinition;
     }
 
-    abstract toString(): string;
-    abstract toHTMLString(): string;
+    abstract toAst(): AstNodeTokenDefinition;
+
+    toString(): string {
+        return astToString(this.toAst());
+    }
 }
 
 export class Token {
@@ -105,13 +115,17 @@ export class Token {
         return weiToString(this._weiAmount, this.definition.weiPerUnit);
     }
 
-    toString(): string {
-        return `${this.amountString()} ${this.definition.toString()}`;
+    toAst(): AstNodeToken {
+        return {
+            type: "token",
+            payload: {
+                amount: this.amountString(),
+                definition: this.definition.toAst(),
+            },
+        };
     }
 
-    toHTMLString(): string {
-        let result = `<span class="amount">${this.amountString()}</span> `;
-        result += this.definition.toHTMLString();
-        return result;
+    toString(): string {
+        return astToString(this.toAst());
     }
 }

@@ -125,10 +125,10 @@ export function parseBytes(tokenizer: Tokenizer): Bytes {
 
         const start = tokenizer.offset;
         let end = start;
-        while (end + 2 < inputLength) {
+        while (end + 2 <= inputLength) {
             const c1 = input.charCodeAt(end);
             if ((c1 < 48 || c1 > 57) && (c1 < 97 || c1 > 102)) break;
-            const c2 = input.charCodeAt(end);
+            const c2 = input.charCodeAt(end + 1);
             if ((c2 < 48 || c2 > 57) && (c2 < 97 || c2 > 102)) break;
 
             end += 2;

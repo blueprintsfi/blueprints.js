@@ -20,7 +20,7 @@ An `UnsupportedBlueprint` token always has a multiplier of 1.
 ## Examples
 
 ```ts
-import { UnsupportedBlueprint, RawBytes } from "@blueprintsfi/blueprints.js";
+import { RawBytes, UnsupportedBlueprint } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const unsupported = new UnsupportedBlueprint(

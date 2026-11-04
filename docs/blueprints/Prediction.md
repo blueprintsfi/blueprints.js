@@ -145,13 +145,13 @@ out the collateral if the oracle resolves to a value of at least 1, and a
 
 ```ts
 import {
-    yesToken,
-    noToken,
     ERC20,
-    Prediction,
+    HashedBytes,
     MapBytes,
     MultisigOracle,
-    HashedBytes,
+    noToken,
+    Prediction,
+    yesToken,
 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
@@ -188,12 +188,12 @@ interpreted as true and 0 as false.
 
 ```ts
 import {
-    parlayToken,
     ERC20,
-    Prediction,
+    HashedBytes,
     MapBytes,
     MultisigOracle,
-    HashedBytes,
+    parlayToken,
+    Prediction,
 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
@@ -232,12 +232,12 @@ possible oracle response.
 
 ```ts
 import {
-    rangeToken,
     ERC20,
-    Prediction,
+    HashedBytes,
     MapBytes,
     MultisigOracle,
-    HashedBytes,
+    Prediction,
+    rangeToken,
 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
@@ -278,12 +278,12 @@ unbounded.
 
 ```ts
 import {
-    rangeParlayToken,
     ERC20,
-    Prediction,
+    HashedBytes,
     MapBytes,
     MultisigOracle,
-    HashedBytes,
+    Prediction,
+    rangeParlayToken,
 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
@@ -321,12 +321,12 @@ above.
 
 ```ts
 import {
-    linearPayoff,
     ERC20,
-    Prediction,
+    HashedBytes,
+    linearPayoff,
     MapBytes,
     MultisigOracle,
-    HashedBytes,
+    Prediction,
 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 

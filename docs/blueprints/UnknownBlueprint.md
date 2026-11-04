@@ -21,7 +21,7 @@ and `internalTokenId()` methods always throw an error.
 ## Examples
 
 ```ts
-import { UnknownBlueprint, RawBytes } from "@blueprintsfi/blueprints.js";
+import { RawBytes, UnknownBlueprint } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const unknown = new UnknownBlueprint(

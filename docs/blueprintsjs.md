@@ -46,7 +46,7 @@ returned by `weiToString`). `weiFromString` is not meant to parse rounded
 human-provided input.
 
 ```ts
-import { Fraction, weiToString, weiFromString } from "@blueprintsfi/blueprints.js";
+import { Fraction, weiFromString, weiToString } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 assert.strictEqual(weiToString(1n, 10n), "0.1");
@@ -74,7 +74,7 @@ The `fromString` static method returns a `TokenDefinition` from its string
 representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
+import { ERC20, TokenDefinition } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = TokenDefinition.fromString("ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
@@ -90,35 +90,40 @@ assert.strictEqual(erc20.decimals, 18n);
 Returns the token definition's string representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
 assert.strictEqual(erc20.toString(), "ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
 ```
 
-### `toHTMLString()`
+### `toAst()`
 
-Returns the token definition's string representation, with certain parts wrapped
-in `<span>` tags with different classes:
-- `address` – for address literals,
-- `int` – for integer literals,
-- `bytes` – for bytes literals,
-- `string` – for string literals,
-- `func` – for function names,
-- `amount` – for token amounts,
-- `blueprint` – for blueprint names,
-- `oracle` – for oracle names.
+Returns the abstract syntax tree of the token definition's string
+representation. See the library's type definitions for details. An AST can be
+converted back to a string representation using the `astToString` helper
+function.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.js";
+import { astToString, TokenDefinition } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-assert.strictEqual(
-    erc20.toHTMLString(),
-    `<span class="blueprint">ERC20</span>&lt;<span class="address">0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2</span>, <span class="int">18</span>&gt;`,
+const erc20Definition = TokenDefinition.fromString(
+    "ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>",
 );
+const ast = erc20Definition.toAst();
+
+assert.deepStrictEqual(ast, {
+    type: "token_definition",
+    payload: {
+        blueprint: "ERC20",
+        params: [
+            { type: "address", payload: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" },
+            { type: "integer", payload: 18n },
+        ],
+    },
+});
+assert.strictEqual(astToString(ast), erc20Definition.toString());
 ```
 
 ### `weiPerUnit`
@@ -159,7 +164,7 @@ must be in the strict format accepted by
 [`weiFromString`](#wei-amounts-human-readable-amounts).
 
 ```ts
-import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.js";
+import { ERC20, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -177,7 +182,7 @@ takes a single argument: the [wei amount](#wei-amounts-human-readable-amounts)
 as a `bigint`.
 
 ```ts
-import { ERC20, Fraction, Token } from "@blueprintsfi/blueprints.js";
+import { ERC20, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -200,7 +205,7 @@ amount. The only way to obtain an instance of this class is to use the
 The `fromString` static method returns a `Token` from its string representation.
 
 ```ts
-import { Token, ERC20 } from "@blueprintsfi/blueprints.js";
+import { ERC20, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20 = Token.fromString("10 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
@@ -218,7 +223,7 @@ assert.strictEqual(erc20.weiAmount, 10n * 10n ** 18n);
 Returns the token's string representation.
 
 ```ts
-import { TokenDefinition, ERC20 } from "@blueprintsfi/blueprints.js";
+import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -226,23 +231,36 @@ const erc20 = erc20Definition.withAmount("15.75");
 assert.strictEqual(erc20.toString(), "15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
 ```
 
-### `toHTMLString()`
+### `toAst()`
 
-Returns the token's string representation, with certain parts wrapped in
-`<span>` tags with different classes. See
-[`TokenDefinition.prototype.toHTMLString()`](#tohtmlstring) for details.
+Returns the abstract syntax tree of the token's string representation. See the
+library's type definitions for details. An AST can be converted back to a string
+representation using the `astToString` helper function.
 
 ```ts
-import { ERC20 } from "@blueprintsfi/blueprints.js";
+import { astToString, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-const erc20 = erc20Definition.withAmount(10n);
+const erc20 = Token.fromString("15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+const ast = erc20.toAst();
 
-assert.strictEqual(
-    erc20.toHTMLString(),
-    `<span class="amount">10</span> <span class="blueprint">ERC20</span>&lt;<span class="address">0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2</span>, <span class="int">18</span>&gt;`,
-);
+assert.deepStrictEqual(ast, {
+    type: "token",
+    payload: {
+        amount: "15.75",
+        definition: {
+            type: "token_definition",
+            payload: {
+                blueprint: "ERC20",
+                params: [
+                    { type: "address", payload: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" },
+                    { type: "integer", payload: 18n },
+                ],
+            },
+        },
+    },
+});
+assert.strictEqual(astToString(ast), erc20.toString());
 ```
 
 ### `definition`
@@ -255,7 +273,7 @@ Returns the token's [human-readable amount](#wei-amounts-human-readable-amounts)
 as a `Fraction`.
 
 ```ts
-import { TokenDefinition, ERC20, Fraction } from "@blueprintsfi/blueprints.js";
+import { ERC20, Fraction } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
@@ -328,11 +346,33 @@ assert.strictEqual(oracle.feedId().length, 32);
 Returns the oracle feed's string representation, which can be parsed using
 `Oracle.fromString()`.
 
-### `toHTMLString()`
+### `toAst()`
 
-Returns the oracle feed's string representation, with certain parts wrapped in
-`<span>` tags with different classes. See
-[`TokenDefinition.prototype.toHTMLString()`](#tohtmlstring) for details.
+Returns the abstract syntax tree of the oracle feed's string representation. See
+the library's type definitions for details. An AST can be converted back to a
+string representation using the `astToString` helper function.
+
+```ts
+import { astToString, Oracle } from "@blueprintsfi/blueprints.js";
+import assert from "node:assert";
+
+const oracle = Oracle.fromString(
+    `UnsupportedOracle<0xBFFeA64641Ba47AD959ae1D53C9c2C24BC5cE4d1, keccak256("feed")>`,
+);
+const ast = oracle.toAst();
+
+assert.deepStrictEqual(ast, {
+    type: "oracle",
+    payload: {
+        oracle: "UnsupportedOracle",
+        params: [
+            { type: "address", payload: "0xBFFeA64641Ba47AD959ae1D53C9c2C24BC5cE4d1" },
+            { type: "hashed_bytes", payload: { type: "string_bytes", payload: "feed" } },
+        ],
+    },
+});
+assert.strictEqual(astToString(ast), oracle.toString());
+```
 
 ### `address()`
 
@@ -400,7 +440,7 @@ map. Keys and values can contain only printable ASCII characters (including
 space) other than `"` and `\`.
 
 ```ts
-import { MapBytes, WithMetadata, NativeToken } from "@blueprintsfi/blueprints.js";
+import { MapBytes, NativeToken, WithMetadata } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
 // The `MapBytes` constructor takes `Record<string, string>` or `Map<string, string>`.

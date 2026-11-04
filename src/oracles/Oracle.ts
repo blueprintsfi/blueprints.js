@@ -25,6 +25,14 @@ export default abstract class Oracle {
         return oracle;
     }
 
+    static tryFromString(input: string): Oracle | null {
+        try {
+            return Oracle.fromString(input);
+        } catch {
+            return null;
+        }
+    }
+
     abstract toAst(): AstNodeOracle;
 
     toString(): string {

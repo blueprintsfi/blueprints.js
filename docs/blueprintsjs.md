@@ -68,10 +68,11 @@ assert.strictEqual(two, 2n);
 The `TokenDefinition` abstract class describes a token. It stores the Blueprint
 which minted it and its parameters.
 
-### `fromString()`
+### `fromString()`, `tryFromString()`
 
 The `fromString` static method returns a `TokenDefinition` from its string
-representation.
+representation. The `tryFromString` static method behaves the same, except that
+it returns `null` instead of throwing an error if the input is invalid.
 
 ```ts
 import { ERC20, TokenDefinition } from "@blueprintsfi/blueprints.js";
@@ -197,12 +198,15 @@ assert.strictEqual(erc20.amountString(), "15.75");
 
 The `Token` class represents a token definition (with `TokenDefinition`) and its
 amount. The only way to obtain an instance of this class is to use the
-[`withAmount()`](#withamount), [`withWeiAmount()`](#withweiamount), or
-[`fromString()`](#fromstring-1) methods.
+[`withAmount()`](#withamount), [`withWeiAmount()`](#withweiamount),
+[`fromString()`](#fromstring-tryfromstring-1), or
+[`tryFromString()`](#fromstring-tryfromstring-1) methods.
 
-### `fromString()`
+### `fromString()`, `tryFromString()`
 
 The `fromString` static method returns a `Token` from its string representation.
+The `tryFromString` static method behaves the same, except that it returns
+`null` instead of throwing an error if the input is invalid.
 
 ```ts
 import { ERC20, Token } from "@blueprintsfi/blueprints.js";
@@ -322,10 +326,11 @@ identified by the oracle's address and a 256-bit feed ID, and resolves to a
 256-bit unsigned integer. Each Oracle subclass has its own docs page describing
 its parameters.
 
-### `fromString()`
+### `fromString()`, `tryFromString()`
 
 The `fromString` static method returns an `Oracle` from its string
-representation. 
+representation. The `tryFromString` static method behaves the same, except that
+it returns `null` instead of throwing an error if the input is invalid.
 
 ```ts
 import { Oracle, UnsupportedOracle } from "@blueprintsfi/blueprints.js";

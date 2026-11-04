@@ -82,6 +82,14 @@ export abstract class TokenDefinition {
         return tokenDefinition;
     }
 
+    static tryFromString(input: string): TokenDefinition | null {
+        try {
+            return TokenDefinition.fromString(input);
+        } catch {
+            return null;
+        }
+    }
+
     abstract toAst(): AstNodeTokenDefinition;
 
     toString(): string {
@@ -109,6 +117,14 @@ export class Token {
         const token = parseToken(tokenizer);
         tokenizer.ensureEOF();
         return token;
+    }
+
+    static tryFromString(input: string): Token | null {
+        try {
+            return Token.fromString(input);
+        } catch {
+            return null;
+        }
     }
 
     amountString(): string {

@@ -83,24 +83,20 @@ export class MapBytes extends Bytes {
     private encoded: Uint8Array | null = null;
     private cachedRaw: string | null = null;
 
-    constructor(map: Map<string, string> | Record<string, string>) {
+    constructor(entries: ReadonlyMap<string, string> | readonly (readonly [string, string])[]) {
         super();
 
-        if (!(map instanceof Map)) {
-            const converted = new Map<string, string>();
-            for (const key in map) {
-                converted.set(key, map[key]!);
-            }
-
-            this.map = converted;
-        } else {
-            this.map = new Map(map);
-        }
-
-        for (const [key, value] of this.map) {
+        const map = new Map<string, string>();
+        for (const [key, value] of entries) {
             validateString(key, "Map keys");
             validateString(value, "Map values");
+
+            if (key.length === 0) throw new Error("Map keys must be non-empty");
+            if (map.has(key)) throw new Error(`Duplicated map key "${key}"`);
+            map.set(key, value);
         }
+
+        this.map = map;
     }
 
     override bytes(): Uint8Array {

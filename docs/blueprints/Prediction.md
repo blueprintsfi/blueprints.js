@@ -159,7 +159,11 @@ function oracle(market: string, condition: string) {
     return new MultisigOracle(
         ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
         1n,
-        new HashedBytes(new MapBytes({ market, condition, time: "2027-01-01 00:00:00 UTC" })),
+        new HashedBytes(new MapBytes([
+            ["market", market],
+            ["condition", condition],
+            ["time", "2027-01-01 00:00:00 UTC"],
+        ])),
     );
 }
 const collateral = new ERC20("0x6fc2e9b25fa19eeC97a05A18aF69332477BA3728", 18n).withAmount(20n);
@@ -201,7 +205,11 @@ function oracle(market: string, condition: string) {
     return new MultisigOracle(
         ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
         1n,
-        new HashedBytes(new MapBytes({ market, condition, time: "2027-01-01 00:00:00 UTC" })),
+        new HashedBytes(new MapBytes([
+            ["market", market],
+            ["condition", condition],
+            ["time", "2027-01-01 00:00:00 UTC"],
+        ])),
     );
 }
 const collateral = new ERC20("0x6fc2e9b25fa19eeC97a05A18aF69332477BA3728", 18n).withAmount(20n);
@@ -245,7 +253,11 @@ function oracle(market: string, condition: string) {
     return new MultisigOracle(
         ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
         1n,
-        new HashedBytes(new MapBytes({ market, condition, time: "2027-01-01 00:00:00 UTC" })),
+        new HashedBytes(new MapBytes([
+            ["market", market],
+            ["condition", condition],
+            ["time", "2027-01-01 00:00:00 UTC"],
+        ])),
     );
 }
 const collateral = new ERC20("0x6fc2e9b25fa19eeC97a05A18aF69332477BA3728", 18n).withAmount(20n);
@@ -291,7 +303,11 @@ function oracle(market: string, condition: string) {
     return new MultisigOracle(
         ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
         1n,
-        new HashedBytes(new MapBytes({ market, condition, time: "2027-01-01 00:00:00 UTC" })),
+        new HashedBytes(new MapBytes([
+            ["market", market],
+            ["condition", condition],
+            ["time", "2027-01-01 00:00:00 UTC"],
+        ])),
     );
 }
 const collateral = new ERC20("0x6fc2e9b25fa19eeC97a05A18aF69332477BA3728", 18n).withAmount(20n);
@@ -334,7 +350,11 @@ function oracle(market: string, condition: string) {
     return new MultisigOracle(
         ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
         1n,
-        new HashedBytes(new MapBytes({ market, condition, time: "2027-01-01 00:00:00 UTC" })),
+        new HashedBytes(new MapBytes([
+            ["market", market],
+            ["condition", condition],
+            ["time", "2027-01-01 00:00:00 UTC"],
+        ])),
     );
 }
 const collateral = new ERC20("0x6fc2e9b25fa19eeC97a05A18aF69332477BA3728", 18n).withAmount(20n);

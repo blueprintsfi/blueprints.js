@@ -24,14 +24,5 @@
             "oracles/UnsupportedOracle": "UnsupportedOracle"
         }
     }],
-    "logo": "logo.svg",
-    "theme": {
-        "backgroundPrimary": "#262626",
-        "backgroundSecondary": "#1d1d1d",
-        "colorPrimary": "#ffffff",
-        "colorSecondary": "#bfbfbf",
-        "accent": "#2563eb",
-        "borderPrimary": "#3c3c3c"
-    },
-    "url": "https://docs.blueprints.finance/"
+    "logo": "logo.svg"
 }

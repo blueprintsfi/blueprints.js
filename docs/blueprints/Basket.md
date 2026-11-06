@@ -19,7 +19,7 @@ affect the token id. More specifically, a canonical form of a basket has amounts
 of the same token id added and all ids sorted. Two baskets have the same token
 id if and only if their canonical forms consist of the same tokens in the same
 ratios. For example, all of the following tokens represent the same position
-with the same token id and the same final amounts:
+with the same token id and the same wei amounts:
 
 1. `1 Basket<[50 NativeToken<18>, 100
    ERC20<0x7B644715bea2e372f8d84Ae1a69534013E1E17a6, 18>]>`

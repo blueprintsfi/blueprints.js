@@ -29,9 +29,8 @@ unit. For example, `10 ERC20<0x0ABb8fFa90597b00a3E1927d78dbaBe23573ED12, 18>`
 represents a token with wei per unit of $10^{18}$. The `10` in this format is
 the human-readable amount. The wei amount of this token is $10^{19}$.
 
-Wei per unit doesn't have to be an integer. Currently, only
-[`Prediction`](/blueprints/Prediction) tokens can have non-integer wei per
-units.
+Wei per unit doesn't have to be an integer. Currently, only `Prediction` tokens
+can have non-integer wei per units.
 
 The library provides two helper functions for converting between human-readable
 amounts and wei amounts: `weiToString` and `weiFromString`. The former takes a
@@ -440,18 +439,20 @@ assert.strictEqual(
 
 ### `MapBytes`
 
-Represents bytes that should be interpreted as a tsON-encoded string-to-string
+Represents bytes that should be interpreted as a JSON-encoded string-to-string
 map. Keys and values can contain only printable ASCII characters (including
-space) other than `"` and `\`.
+space) other than `"` and `\`. Keys must be non-empty and the order of keys
+matters.
 
 ```ts
 import { MapBytes, NativeToken, WithMetadata } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-// The `MapBytes` constructor takes `Record<string, string>` or `Map<string, string>`.
-const metadata = new MapBytes({
-    user_comment: "I know I'm overexposed but the price is down right now",
-});
+// The `MapBytes` constructor takes `Map<string, string>` or `[string, string][]` (an array of
+// `(key, value)` tuples in which keys must be distinct).
+const metadata = new MapBytes([
+    ["user_comment", "I know I'm overexposed but the price is down right now"],
+]);
 const token = new WithMetadata(new NativeToken(18n).withAmount(1n), metadata).withAmount(2n);
 
 assert.strictEqual(
@@ -484,11 +485,11 @@ const feedId = "e53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af
 const oracle = new MultisigOracle(
     ["0xCA2421bE4AA793c9F95faef57811F4eD360f54e1"],
     1n,
-    new HashedBytes(new MapBytes({
-        market: "BTC",
-        condition: "above 100000",
-        time: "2027-01-01 00:00:00 UTC",
-    })),
+    new HashedBytes(new MapBytes([
+        ["market", "BTC"],
+        ["condition", "above 100000"],
+        ["time", "2027-01-01 00:00:00 UTC"],
+    ])),
 );
 assert.strictEqual(
     oracle.toString(),

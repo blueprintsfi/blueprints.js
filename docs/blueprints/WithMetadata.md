@@ -28,9 +28,9 @@ import assert from "node:assert";
 
 const position = new WithMetadata(
     new NativeToken(18n).withAmount(1n),
-    new MapBytes({
-        user_comment: "I know I'm overexposed but the price is down right now",
-    }),
+    new MapBytes([
+        ["user_comment", "I know I'm overexposed but the price is down right now"],
+    ]),
 ).withAmount(2n);
 
 assert.strictEqual(

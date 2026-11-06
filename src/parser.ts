@@ -317,7 +317,6 @@ export function parseBytes(tokenizer: Tokenizer): Bytes {
     tokenizer.unexpected("bytes", token);
 }
 
-// TODO: ensure order
 function parseMapBytes(tokenizer: Tokenizer): MapBytes {
     const map = new Map<string, string>();
     if (tokenizer.consumePunctuation("}")) {
@@ -331,6 +330,9 @@ function parseMapBytes(tokenizer: Tokenizer): MapBytes {
         const value = tokenizer.expect(TokenType.String);
 
         const keyText = key.text.slice(1, -1);
+        if (keyText.length === 0) {
+            tokenizer.fail("Map keys must be non-empty", key.position);
+        }
         if (map.has(keyText)) {
             tokenizer.fail(`Duplicated map key ${key.text}`, key.position);
         }
@@ -434,18 +436,13 @@ function joinParams(params: readonly AstNode[], render: (node: AstNode) => strin
 
 export function astToString(node: AstNode): string {
     switch (node.type) {
-        case "integer":
-            return `${node.payload}`;
-        case "address":
-            return node.payload;
-        case "array":
-            return `[${joinParams(node.payload, astToString)}]`;
-        case "tuple":
-            return `(${joinParams(node.payload, astToString)})`;
-        case "raw_bytes":
-            return "0x" + bytesToHex(node.payload);
-        case "string_bytes":
-            return `"${node.payload}"`;
+        case "integer": return `${node.payload}`;
+        case "address": return node.payload;
+        case "array": return `[${joinParams(node.payload, astToString)}]`;
+        case "tuple": return `(${joinParams(node.payload, astToString)})`;
+        case "raw_bytes": return "0x" + bytesToHex(node.payload);
+        case "string_bytes": return `"${node.payload}"`;
+
         case "map_bytes": {
             if (node.payload.size === 0) return "{}";
 
@@ -462,16 +459,19 @@ export function astToString(node: AstNode): string {
             }
             return result + " }";
         }
-        case "hashed_bytes":
-            return `keccak256(${astToString(node.payload)})`;
+
+        case "hashed_bytes": return `keccak256(${astToString(node.payload)})`;
+
         case "token": {
             const { amount, definition } = node.payload;
             return `${amount} ${astToString(definition)}`;
         }
+
         case "token_definition": {
             const { blueprint, params } = node.payload;
             return `${blueprint}<${joinParams(params, astToString)}>`;
         }
+
         case "oracle": {
             const { oracle, params } = node.payload;
             return `${oracle}<${joinParams(params, astToString)}>`;

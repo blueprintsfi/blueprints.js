@@ -42,11 +42,11 @@ const multisigOracle = new MultisigOracle(
         "0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189",
     ],
     2n,
-    new HashedBytes(new MapBytes({
-        market: "BTC",
-        condition: "above 100000",
-        date: "2027-01-01 00:00:00 UTC",
-    })),
+    new HashedBytes(new MapBytes([
+        ["market", "BTC"],
+        ["condition", "above 100000"],
+        ["date", "2027-01-01 00:00:00 UTC"],
+    ])),
 );
 assert.strictEqual(
     multisigOracle.toString(),

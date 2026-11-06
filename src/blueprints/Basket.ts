@@ -111,13 +111,13 @@ export default class Basket extends TokenDefinition {
 }
 
 function parseBasket(tokenizer: Tokenizer): Basket {
-    tokenizer.mustConsume("[");
+    tokenizer.expectPunctuation("[");
 
     const tokens: Token[] = [];
     while (true) {
         tokens.push(parseToken(tokenizer));
-        if (tokenizer.consume("]")) break;
-        tokenizer.mustConsume(", ");
+        if (tokenizer.consumePunctuation("]")) break;
+        tokenizer.expectPunctuation(", ");
     }
 
     return new Basket(tokens);

@@ -2,173 +2,343 @@ import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import type { Token, TokenDefinition } from "./blueprints/token.js";
 import { HashedBytes, MapBytes, RawBytes, StringBytes, type Bytes } from "./bytes.js";
 import Oracle from "./oracles/Oracle.js";
-import { validateAddress } from "./utils.js";
+
+export enum TokenType {
+    /** `(?:0|[1-9][0-9]*)(?:\.[0-9]*[1-9])?` or `~(?:0|[1-9][0-9]*)\.[0-9]+` */
+    Number,
+    Identifier,
+    Bytes,
+    Punctuation,
+    EOF,
+    String,
+    /** Currently, there is only one keyword: `keccak256`. */
+    Keyword,
+}
+
+function tokenTypeToString(tokenType: TokenType): string {
+    switch (tokenType) {
+        case TokenType.Number: return "number";
+        case TokenType.Identifier: return "identifier";
+        case TokenType.Bytes: return "bytes";
+        case TokenType.Punctuation: return "punctuation";
+        case TokenType.EOF: return "end of input";
+        case TokenType.String: return "string";
+        case TokenType.Keyword: return "keyword";
+    }
+}
+
+export type TextToken = {
+    type: TokenType;
+    text: string;
+    position: number;
+};
+
+function describeToken(token: TextToken): string {
+    switch (token.type) {
+        case TokenType.EOF: return "end of input";
+        default: return `'${token.text}'`;
+    }
+}
 
 export class Tokenizer {
-    offset = 0;
+    private offset = 0;
+    private peeked: TextToken | null = null;
 
     constructor(readonly input: string) {}
 
-    consume(str: string): boolean {
-        if (!this.input.startsWith(str, this.offset)) return false;
+    next(): TextToken {
+        const { peeked } = this;
+        if (peeked !== null) {
+            this.peeked = null;
+            return peeked;
+        }
 
-        this.offset += str.length;
+        const { input } = this;
+        const { length } = input;
+        const start = this.offset;
+        if (start === length) {
+            return { type: TokenType.EOF, text: "", position: start };
+        }
+
+        const c = input.charAt(start);
+        if (c === `"`) {
+            const end = input.indexOf(`"`, start + 1);
+            if (end === -1) this.fail("Unterminated string", start);
+            return this.token(TokenType.String, end + 1);
+        }
+
+        if (",:<>()[]{} ".includes(c)) {
+            return this.token(TokenType.Punctuation, start + 1);
+        }
+
+        if (c === "0" && input.charAt(start + 1) === "x") {
+            let end = start + 2;
+            while (end < length && Tokenizer.isHexChar(input.charAt(end))) end++;
+
+            if (end < length && Tokenizer.isIdentifierChar(input.charAt(end))) {
+                this.fail("Invalid hex digit", end);
+            }
+            if (((end - start) & 1) !== 0) {
+                this.fail("Bytes must have an even number of hex digits", start);
+            }
+            return this.token(TokenType.Bytes, end);
+        }
+
+        if (c === "~" || Tokenizer.isDigit(c)) {
+            return this.number();
+        }
+
+        if (Tokenizer.isIdentifierChar(c)) {
+            let end = start + 1;
+            while (end < length && Tokenizer.isIdentifierChar(input.charAt(end))) end++;
+            const text = input.slice(start, end);
+            return this.token(text === "keccak256" ? TokenType.Keyword : TokenType.Identifier, end);
+        }
+
+        this.fail(`Unexpected character ${JSON.stringify(input.charAt(start))}`);
+    }
+
+    private number(): TextToken {
+        const { input } = this;
+        const { length } = input;
+        const start = this.offset;
+        let end = start;
+
+        const isApproximation = input.charCodeAt(end) === 126 /* "~" */;
+        if (isApproximation) end++;
+
+        const integerStart = end;
+        while (end < length && Tokenizer.isDigit(input.charAt(end))) end++;
+        if (end === integerStart ||
+            (input.charCodeAt(integerStart) === 48 /* "0" */ && end - integerStart > 1)
+        ) {
+            this.fail("Malformed number", start);
+        }
+
+        if (input.charCodeAt(end) === 46 /* "." */) {
+            end++;
+            const fractionStart = end;
+            while (end < length && Tokenizer.isDigit(input.charAt(end))) end++;
+            if (end === fractionStart) {
+                this.fail("Malformed number", start);
+            }
+
+            // Exact amounts never have trailing zeros in the fractional part.
+            if (!isApproximation && input.charCodeAt(end - 1) === 48 /* "0" */) {
+                this.fail("Malformed number", start);
+            }
+        } else if (isApproximation) {
+            // Approximate amounts always have a fractional part.
+            this.fail("Malformed number", start);
+        }
+
+        if (end < length && Tokenizer.isIdentifierChar(input.charAt(end))) {
+            this.fail("Malformed number", start);
+        }
+
+        return this.token(TokenType.Number, end);
+    }
+
+    private token(type: TokenType, end: number): TextToken {
+        const position = this.offset;
+        this.offset = end;
+        return { type, text: this.input.slice(position, end), position };
+    }
+
+    peek(): TextToken {
+        const { peeked } = this;
+        if (peeked !== null) return peeked;
+
+        return this.peeked = this.next();
+    }
+
+    discardPeeked(): void {
+        this.peeked = null;
+    }
+
+    private static isDigit(c: string): boolean {
+        return c >= "0" && c <= "9";
+    }
+
+    private static isHexChar(c: string): boolean {
+        return Tokenizer.isDigit(c) || (c >= "a" && c <= "f") || (c >= "A" && c <= "F");
+    }
+
+    private static isIdentifierChar(c: string): boolean {
+        return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || Tokenizer.isDigit(c) ||
+            c === "_";
+    }
+
+    fail(message: string, position = this.offset): never {
+        throw new SyntaxError(`${message} at position ${position}`);
+    }
+
+    unexpected(expected: string, token: TextToken): never {
+        this.fail(`Expected ${expected}, got ${describeToken(token)}`, token.position);
+    }
+
+    expect(tokenType: TokenType): TextToken {
+        const token = this.next();
+        if (token.type !== tokenType) {
+            this.unexpected(tokenTypeToString(tokenType), token);
+        }
+        return token;
+    }
+
+    expectEOF(): void {
+        this.expect(TokenType.EOF);
+    }
+
+    /**
+     * Consumes each character from `punctuation` as a separate punctuation token.
+     */
+    expectPunctuation(punctuation: string): void {
+        for (const c of punctuation) {
+            const token = this.next();
+            if (token.type !== TokenType.Punctuation || token.text !== c) {
+                this.fail(`Expected '${c}', got ${describeToken(token)}`, token.position);
+            }
+        }
+    }
+
+    /**
+     * Consumes the next token iff it is the punctuation character `c`. Returns whether the token
+     * was consumed.
+     */
+    consumePunctuation(c: string): boolean {
+        const token = this.peek();
+        if (token.type !== TokenType.Punctuation || token.text !== c) return false;
+
+        this.discardPeeked();
         return true;
-    }
-
-    mustConsume(str: string) {
-        if (!this.consume(str)) {
-            throw new SyntaxError(`Expected '${str}'`);
-        }
-    }
-
-    ensureEOF() {
-        if (this.offset !== this.input.length) {
-            throw new SyntaxError("Expected EOF");
-        }
-    }
-
-    until(char: string) {
-        const index = this.input.indexOf(char, this.offset);
-        if (index === -1) {
-            throw new SyntaxError(`Expected '${char}', got EOF`);
-        }
-
-        const result = this.input.slice(this.offset, index);
-        this.offset = index + 1;
-        return result;
     }
 }
 
 export const tokenDefinitionParsers = new Map<string, (tokenizer: Tokenizer) => TokenDefinition>();
 export const oracleParsers = new Map<string, (tokenizer: Tokenizer) => Oracle>();
 
+/**
+ * Does not validate checksum.
+ */
+export function parseAddress(tokenizer: Tokenizer): string {
+    const token = tokenizer.next();
+    const address = token.text;
+    if (token.type !== TokenType.Bytes || address.length !== 42) {
+        tokenizer.unexpected("address", token);
+    }
+
+    return address;
+}
+
 export function parseToken(tokenizer: Tokenizer): Token {
-    const amount = tokenizer.until(" ");
+    const amount = tokenizer.expect(TokenType.Number);
+    tokenizer.expectPunctuation(" ");
+
     const definition = parseTokenDefinition(tokenizer);
-    return definition.withAmount(amount);
+    return definition.withAmount(amount.text);
 }
 
 export function parseTokenDefinition(tokenizer: Tokenizer): TokenDefinition {
-    const blueprint = tokenizer.until("<");
-    const parser = tokenDefinitionParsers.get(blueprint);
-    if (parser === undefined) {
-        throw new SyntaxError(`Unknown blueprint: ${blueprint}`);
+    const blueprint = tokenizer.next();
+    if (blueprint.type !== TokenType.Identifier) {
+        tokenizer.unexpected("blueprint name", blueprint);
     }
 
+    const parser = tokenDefinitionParsers.get(blueprint.text);
+    if (parser === undefined) {
+        tokenizer.fail(`Unknown blueprint '${blueprint.text}'`, blueprint.position);
+    }
+
+    tokenizer.expectPunctuation("<");
     const result = parser(tokenizer);
-    tokenizer.mustConsume(">");
+    tokenizer.expectPunctuation(">");
     return result;
 }
 
 export function parseOracle(tokenizer: Tokenizer): Oracle {
-    const oracle = tokenizer.until("<");
-    const parser = oracleParsers.get(oracle);
-    if (parser === undefined) {
-        throw new SyntaxError(`Unknown oracle: ${oracle}`);
+    const oracle = tokenizer.next();
+    if (oracle.type !== TokenType.Identifier) {
+        tokenizer.unexpected("oracle name", oracle);
     }
 
+    const parser = oracleParsers.get(oracle.text);
+    if (parser === undefined) {
+        tokenizer.fail(`Unknown oracle '${oracle.text}'`, oracle.position);
+    }
+
+    tokenizer.expectPunctuation("<");
     return parser(tokenizer);
 }
 
 export function parseInteger(tokenizer: Tokenizer): bigint {
-    const input = tokenizer.input;
-    const inputLength = input.length;
-
-    const start = tokenizer.offset;
-    let end = start;
-    while (end < inputLength) {
-        const c = input.charCodeAt(end);
-        if (c < 48 || c > 57) break;
-        end++;
+    const token = tokenizer.expect(TokenType.Number);
+    try {
+        return BigInt(token.text);
+    } catch {
+        tokenizer.fail("Malformed integer", token.position);
     }
-
-    const length = end - start;
-    if (length === 0) {
-        throw new SyntaxError("Expected an integer");
-    }
-    if (length > 1 && input.charCodeAt(start) === 48) {
-        throw new SyntaxError("Integer has leading zeros");
-    }
-
-    tokenizer.offset = end;
-    return BigInt(input.slice(start, end));
-}
-
-export function parseAddress(tokenizer: Tokenizer, validateChecksum = true): string {
-    const input = tokenizer.input;
-    const start = tokenizer.offset;
-    const end = start + 42;
-    if (end > input.length) {
-        throw new SyntaxError("Expected an address");
-    }
-    tokenizer.offset = end;
-
-    const address = input.slice(start, end);
-    if (validateChecksum) validateAddress(address);
-    return address;
 }
 
 export function parseBytes(tokenizer: Tokenizer): Bytes {
-    if (tokenizer.consume("\"")) {
-        const string = tokenizer.until("\"");
-        return new StringBytes(string);
-    }
+    const token = tokenizer.next();
+    switch (token.type) {
+        case TokenType.String:
+            return new StringBytes(token.text.slice(1, -1));
 
-    if (tokenizer.consume("{")) {
-        return parseMapBytes(tokenizer);
-    }
+        case TokenType.Bytes: {
+            const { text } = token;
+            const { length } = text;
 
-    if (tokenizer.consume("0x")) {
-        const input = tokenizer.input;
-        const inputLength = tokenizer.input.length;
+            for (let i = 2; i < length; i++) {
+                const c = text.charCodeAt(i);
+                if (c >= 65 /* "A" */ && c <= 70 /* "F" */) {
+                    tokenizer.fail("Bytes must be lowercase", token.position);
+                }
+            }
 
-        const start = tokenizer.offset;
-        let end = start;
-        while (end + 2 <= inputLength) {
-            const c1 = input.charCodeAt(end);
-            if ((c1 < 48 || c1 > 57) && (c1 < 97 || c1 > 102)) break;
-            const c2 = input.charCodeAt(end + 1);
-            if ((c2 < 48 || c2 > 57) && (c2 < 97 || c2 > 102)) break;
-
-            end += 2;
+            return new RawBytes(hexToBytes(text.slice(2)));
         }
 
-        tokenizer.offset = end;
-        return new RawBytes(hexToBytes(input.slice(start, end)));
+        case TokenType.Keyword: {
+            tokenizer.expectPunctuation("(");
+            const result = new HashedBytes(parseBytes(tokenizer));
+            tokenizer.expectPunctuation(")");
+            return result;
+        }
+
+        case TokenType.Punctuation: {
+            if (token.text === "{") {
+                return parseMapBytes(tokenizer);
+            }
+            break;
+        }
     }
 
-    if (tokenizer.consume("keccak256(")) {
-        const inner = parseBytes(tokenizer);
-        const result = new HashedBytes(inner);
-        tokenizer.mustConsume(')');
-        return result;
-    }
-
-    throw new Error("Failed to parse bytes");
+    tokenizer.unexpected("bytes", token);
 }
 
 // TODO: ensure order
 function parseMapBytes(tokenizer: Tokenizer): MapBytes {
     const map = new Map<string, string>();
-    if (tokenizer.consume("}")) {
+    if (tokenizer.consumePunctuation("}")) {
         return new MapBytes(map);
     }
 
     while (true) {
-        tokenizer.mustConsume(` "`);
-        const key = tokenizer.until(`"`);
-        tokenizer.mustConsume(`: "`);
-        const value = tokenizer.until(`"`);
-        if (map.has(key)) {
-            throw new Error("Duplicated map key");
-        }
-        map.set(key, value);
+        tokenizer.expectPunctuation(" ");
+        const key = tokenizer.expect(TokenType.String);
+        tokenizer.expectPunctuation(": ");
+        const value = tokenizer.expect(TokenType.String);
 
-        if (tokenizer.consume(" }")) {
-            return new MapBytes(map);
+        const keyText = key.text.slice(1, -1);
+        if (map.has(keyText)) {
+            tokenizer.fail(`Duplicated map key ${key.text}`, key.position);
         }
-        tokenizer.mustConsume(",");
+        map.set(keyText, value.text.slice(1, -1));
+
+        if (tokenizer.consumePunctuation(",")) continue;
+        tokenizer.expectPunctuation(" }");
+        return new MapBytes(map);
     }
 }
 

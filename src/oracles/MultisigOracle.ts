@@ -9,7 +9,7 @@ import {
     parseInteger,
     type Tokenizer,
 } from "../parser.js";
-import { numberToBytesBE } from "../utils.js";
+import { numberToBytesBE, validateAddress } from "../utils.js";
 import Oracle from "./Oracle.js";
 
 export default class MultisigOracle extends Oracle {
@@ -22,6 +22,10 @@ export default class MultisigOracle extends Oracle {
         readonly threshold: bigint,
         readonly signedFeed: Bytes,
     ) {
+        for (const address of addresses) {
+            validateAddress(address);
+        }
+
         if (threshold <= 0n || threshold > BigInt(addresses.length)) {
             throw new Error("Invalid threshold");
         }
@@ -77,20 +81,20 @@ export default class MultisigOracle extends Oracle {
 }
 
 function parse(tokenizer: Tokenizer): MultisigOracle {
-    tokenizer.mustConsume("[");
+    tokenizer.expectPunctuation("[");
     const addresses: string[] = [];
-    if (!tokenizer.consume("]")) {
+    if (!tokenizer.consumePunctuation("]")) {
         while (true) {
             addresses.push(parseAddress(tokenizer));
-            if (tokenizer.consume("]")) break;
-            tokenizer.mustConsume(", ");
+            if (tokenizer.consumePunctuation("]")) break;
+            tokenizer.expectPunctuation(", ");
         }
     }
-    tokenizer.mustConsume(", ");
+    tokenizer.expectPunctuation(", ");
     const threshold = parseInteger(tokenizer);
-    tokenizer.mustConsume(", ");
+    tokenizer.expectPunctuation(", ");
     const feedIdBytes = parseBytes(tokenizer);
-    tokenizer.mustConsume(">");
+    tokenizer.expectPunctuation(">");
     return new MultisigOracle(addresses, threshold, feedIdBytes);
 }
 

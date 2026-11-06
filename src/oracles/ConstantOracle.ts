@@ -34,7 +34,7 @@ export default class ConstantOracle extends Oracle {
 
 function parse(tokenizer: Tokenizer): ConstantOracle {
     const innerOracle = parseOracle(tokenizer);
-    tokenizer.mustConsume(">");
+    tokenizer.expectPunctuation(">");
     return new ConstantOracle(innerOracle);
 }
 

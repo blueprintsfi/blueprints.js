@@ -271,33 +271,33 @@ export default class Prediction extends TokenDefinition {
 
 function parsePrediction(tokenizer: Tokenizer): Prediction {
     const collateral = parseToken(tokenizer);
-    tokenizer.mustConsume(", [");
+    tokenizer.expectPunctuation(", [");
 
     const constraints: PredictionConstraint[] = [];
     while (true) {
-        tokenizer.mustConsume("(");
+        tokenizer.expectPunctuation("(");
         const oracle = parseOracle(tokenizer);
-        tokenizer.mustConsume(", [");
+        tokenizer.expectPunctuation(", [");
 
         const points: PredictionPoint[] = [];
-        if (!tokenizer.consume("]")) {
+        if (!tokenizer.consumePunctuation("]")) {
             while (true) {
-                tokenizer.mustConsume("(");
+                tokenizer.expectPunctuation("(");
                 const x = parseInteger(tokenizer);
-                tokenizer.mustConsume(", ");
+                tokenizer.expectPunctuation(", ");
                 const y = parseInteger(tokenizer);
-                tokenizer.mustConsume(")");
+                tokenizer.expectPunctuation(")");
                 points.push({ x, y });
-                if (tokenizer.consume("]")) break;
-                tokenizer.mustConsume(", ");
+                if (tokenizer.consumePunctuation("]")) break;
+                tokenizer.expectPunctuation(", ");
             }
         }
 
         constraints.push({ oracle, points });
 
-        tokenizer.mustConsume(")");
-        if (tokenizer.consume("]")) break;
-        tokenizer.mustConsume(", ");
+        tokenizer.expectPunctuation(")");
+        if (tokenizer.consumePunctuation("]")) break;
+        tokenizer.expectPunctuation(", ");
     }
 
     return new Prediction(collateral, constraints);

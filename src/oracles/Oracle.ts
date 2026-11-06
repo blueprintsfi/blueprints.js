@@ -21,7 +21,7 @@ export default abstract class Oracle {
     static fromString(input: string): Oracle {
         const tokenizer = new Tokenizer(input);
         const oracle = parseOracle(tokenizer);
-        tokenizer.ensureEOF();
+        tokenizer.expectEOF();
         return oracle;
     }
 

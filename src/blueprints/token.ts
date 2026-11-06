@@ -78,7 +78,7 @@ export abstract class TokenDefinition {
     static fromString(input: string): TokenDefinition {
         const tokenizer = new Tokenizer(input);
         const tokenDefinition = parseTokenDefinition(tokenizer);
-        tokenizer.ensureEOF();
+        tokenizer.expectEOF();
         return tokenDefinition;
     }
 
@@ -115,7 +115,7 @@ export class Token {
     static fromString(input: string): Token {
         const tokenizer = new Tokenizer(input);
         const token = parseToken(tokenizer);
-        tokenizer.ensureEOF();
+        tokenizer.expectEOF();
         return token;
     }
 

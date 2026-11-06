@@ -40,7 +40,7 @@ export default class WithMetadata extends TokenDefinition {
 
 function parseWithMetadata(tokenizer: Tokenizer): WithMetadata {
     const token = parseToken(tokenizer);
-    tokenizer.mustConsume(", ");
+    tokenizer.expectPunctuation(", ");
     const metadata = parseBytes(tokenizer);
     return new WithMetadata(token, metadata);
 }

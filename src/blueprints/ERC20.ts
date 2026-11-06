@@ -51,8 +51,8 @@ export default class ERC20 extends TokenDefinition {
 }
 
 function parseERC20(tokenizer: Tokenizer): ERC20 {
-    const address = parseAddress(tokenizer, false);
-    tokenizer.mustConsume(", ");
+    const address = parseAddress(tokenizer);
+    tokenizer.expectPunctuation(", ");
     const decimals = parseInteger(tokenizer);
     return new ERC20(address, decimals);
 }

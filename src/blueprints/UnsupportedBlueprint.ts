@@ -45,8 +45,8 @@ export default class UnsupportedBlueprint extends TokenDefinition {
 }
 
 function parseUnsupportedBlueprint(tokenizer: Tokenizer): UnsupportedBlueprint {
-    const address = parseAddress(tokenizer, false);
-    tokenizer.mustConsume(", ");
+    const address = parseAddress(tokenizer);
+    tokenizer.expectPunctuation(", ");
     const tokenId = parseBytes(tokenizer);
     return new UnsupportedBlueprint(address, tokenId);
 }

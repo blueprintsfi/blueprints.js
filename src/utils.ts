@@ -147,18 +147,13 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     result >>= 1n;
 
     const integer = result / multiplier;
-
     let fraction = (result % multiplier).toString().padStart(decimals, "0");
     if (isExact) {
-        while (fraction.length > 0 && fraction[fraction.length - 1] === "0") {
+        while (fraction[fraction.length - 1] === "0") {
             fraction = fraction.slice(0, -1);
         }
     }
-    if (fraction.length > 0) {
-        fraction = "." + fraction;
-    }
-
-    return `${isExact ? "" : "~"}${integer}${fraction}`;
+    return `${isExact ? "" : "~"}${integer}.${fraction}`;
 }
 
 export function weiFromString(input: string, weiPerUnit: Fraction | bigint): bigint {

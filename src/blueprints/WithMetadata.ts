@@ -12,6 +12,10 @@ export default class WithMetadata extends TokenDefinition {
     static override name = "WithMetadata";
 
     constructor(readonly token: Token, readonly metadata: Bytes) {
+        if (token.weiAmount === 0n) {
+            throw new Error("Token in WithMetadata must have non-zero amount");
+        }
+
         super(token.weiAmount);
     }
 

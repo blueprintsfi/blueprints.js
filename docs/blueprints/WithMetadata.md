@@ -14,8 +14,8 @@ declare class WithMetadata extends TokenDefinition {
 }
 ```
 
-`WithMetadata` takes two parameters the wrapped token, and arbitrary metadata
-bytes.
+`WithMetadata` takes two parameters the wrapped token, which must have a nonzero
+amount, and arbitrary metadata bytes.
 
 The [wei per unit](../blueprintsjs#wei-amounts-human-readable-amounts) is
 defined as the wei amount of wrapped token.

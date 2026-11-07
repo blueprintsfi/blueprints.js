@@ -56,7 +56,7 @@ export default class MultisigOracle extends Oracle {
     }
 
     override address(): string {
-        return "0x1A939e6b7DbF9a9E3dC1215e8C7FF9BE6Db82939";
+        return "0x9aDCaB3f6904d36E179F0861d0BACBeaE97D87BD";
     }
 
     override toAst(): AstNodeOracle {

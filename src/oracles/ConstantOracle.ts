@@ -18,7 +18,7 @@ export default class ConstantOracle extends Oracle {
     }
 
     override address() {
-        return "0x9F082c41045dEaCf53D5cfEF4b5b60edA38D95Af";
+        return "0x864ed9f1D46386127323ab4Bb0645aF1eC65EA35";
     }
 
     override toAst(): AstNodeOracle {

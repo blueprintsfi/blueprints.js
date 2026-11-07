@@ -33,7 +33,7 @@ export default class ERC20 extends TokenDefinition {
     }
 
     override blueprintAddress(): string {
-        return "0x01B522c50242747c576717052FBA75e7fA2aa6a8";
+        return "0x563433a6cCBB6c3a8DbC4fb5c4FF56602af25779";
     }
 
     override toAst(): AstNodeTokenDefinition {

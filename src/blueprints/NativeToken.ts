@@ -28,7 +28,7 @@ export default class NativeToken extends TokenDefinition {
     }
 
     override blueprintAddress(): string {
-        return "0xF3F67A0F38BF0A61DD2D93ADf9B04753D39C631C";
+        return "0x98198D50bA4e2ac6624f3659F8e404A3aFE30e71";
     }
 
     override toAst(): AstNodeTokenDefinition {

@@ -37,10 +37,7 @@ function aggregateAmounts(tokens: readonly Token[]): AggregatedAmounts {
 const hasGetOrInsert = "getOrInsert" in Map.prototype;
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
-    if (hasGetOrInsert) {
-        // @ts-ignore
-        return map.getOrInsert(key, value);
-    }
+    if (hasGetOrInsert) return map.getOrInsert(key, value);
 
     const existing = map.get(key);
     if (existing !== undefined) {
@@ -104,7 +101,7 @@ export default class Basket extends TokenDefinition {
     }
 
     override blueprintAddress(): string {
-        return "0x52B785358dDAff5B7A8C16b52f0C2f7C21f3eAa4";
+        return "0xb97dc662E26EE24e6C736E244d57d53610CB236c";
     }
 
     override toAst(): AstNodeTokenDefinition {

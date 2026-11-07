@@ -238,7 +238,7 @@ export default class Prediction extends TokenDefinition {
     }
 
     override blueprintAddress(): string {
-        return "0x3b73Eed70a322Fbb110c3487484864ff8AB910F8";
+        return "0x5F29d59D04585eb7CF38B056474EBfC1d9CF444C";
     }
 
     override toAst(): AstNodeTokenDefinition {

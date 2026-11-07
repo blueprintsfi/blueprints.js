@@ -6,16 +6,16 @@ import {
     tokenDefinitionParsers,
     type Tokenizer,
 } from "../parser.js";
-import { calculateGcd, compareIds, Fraction, numberToBytesBE, UINT256_MAX } from "../utils.js";
+import { calculateGcd, compareIds, numberToBytesBE, UINT256_MAX } from "../utils.js";
 import { Token, TokenDefinition } from "./token.js";
 
-type AggregateAmounts = {
+type AggregatedAmounts = {
     tokenId: Uint8Array;
     weiAmount: bigint;
 }[];
 
-function aggregateAmounts(tokens: readonly Token[]): AggregateAmounts {
-    let result: AggregateAmounts = [];
+function aggregateAmounts(tokens: readonly Token[]): AggregatedAmounts {
+    let result: AggregatedAmounts = [];
     const tokenIdMap = new Map<string, number>();
 
     for (const token of tokens) {
@@ -27,10 +27,7 @@ function aggregateAmounts(tokens: readonly Token[]): AggregateAmounts {
                 weiAmount: token.weiAmount,
             });
         } else {
-            const amount = result[index]!.weiAmount += token.weiAmount;
-            if (amount > UINT256_MAX) {
-                throw new Error("Accumulated token amount in the Basket is too large");
-            }
+            result[index]!.weiAmount += token.weiAmount;
         }
     }
 
@@ -58,6 +55,7 @@ export default class Basket extends TokenDefinition {
     static override name = "Basket";
 
     tokens: readonly Token[];
+    private aggregatedAmounts: AggregatedAmounts;
 
     constructor(tokens: Token[]) {
         if (tokens.length === 0) {
@@ -77,21 +75,31 @@ export default class Basket extends TokenDefinition {
             gcd = calculateGcd(gcd, weiAmount);
         }
 
+        for (const entry of aggregated) {
+            const amount = entry.weiAmount /= gcd;
+            if (amount > UINT256_MAX) {
+                throw new Error("Accumulated token amount in the Basket is too large");
+            }
+        }
+
         super(gcd);
         this.tokens = tokens.slice();
+        this.aggregatedAmounts = aggregated;
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
-        const aggregated = aggregateAmounts(this.tokens);
-        aggregated.sort((lhs, rhs) => compareIds(lhs.tokenId, rhs.tokenId));
+        this.aggregatedAmounts.sort((lhs, rhs) => compareIds(lhs.tokenId, rhs.tokenId));
 
-        const buffer = new Uint8Array(0x40 * aggregated.length);
-        for (let i = 0; i < aggregated.length; i++) {
-            const { tokenId, weiAmount } = aggregated[i]!;
-            const raw = new Fraction(weiAmount, 1n).div(this.weiPerUnit).toBigInt();
-            buffer.set(numberToBytesBE(raw, 0x20), i * 0x40);
-            buffer.set(tokenId, i * 0x40 + 0x20);
+        const { length } = this.aggregatedAmounts;
+        const buffer = new Uint8Array(0x40 * length);
+        for (let i = 0; i < length; i++) {
+            const { tokenId, weiAmount } = this.aggregatedAmounts[i]!;
+            buffer.set(tokenId, i * 0x20);
+            buffer.set(numberToBytesBE(weiAmount, 0x20), (length + i) * 0x20);
         }
+
+        // Will not be needed anymore.
+        this.aggregatedAmounts.length = 0;
         return keccak_256(buffer);
     }
 

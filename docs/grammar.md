@@ -92,19 +92,19 @@ separate production.
     <div>
         <a href="#def-token-definition"><em>Token definition</em></a> :
     </div>
-    <div class="prod" data-rule="native-token">
+    <div class="prod">
         <code>NativeToken&lt;</code>
         <a href="#def-integer"><em>Integer</em></a>
         <code>&gt;</code>
     </div>
-    <div class="prod" data-rule="erc20">
+    <div class="prod">
         <code>ERC20&lt;</code>
         <a href="#def-address"><em>Address</em></a>
         <code>,&nbsp;</code>
         <a href="#def-integer"><em>Integer</em></a>
         <code>&gt;</code>
     </div>
-    <div class="prod" data-rule="basket">
+    <div class="prod">
         <code>Basket&lt;</code>
         <a href="#def-token-array"><em>Token array</em></a>
         <code>&gt;</code>

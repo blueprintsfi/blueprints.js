@@ -6,7 +6,7 @@ import {
     parseBytes,
     type Tokenizer,
 } from "../parser.js";
-import { validateAddress } from "../utils.js";
+import { skipAddressValidation, validateAddress } from "../utils.js";
 import Oracle from "./Oracle.js";
 
 export default class UnsupportedOracle extends Oracle {
@@ -49,7 +49,7 @@ function parse(tokenizer: Tokenizer): UnsupportedOracle {
     tokenizer.expectPunctuation(", ");
     const feedIdBytes = parseBytes(tokenizer);
     tokenizer.expectPunctuation(">");
-    return new UnsupportedOracle(address, feedIdBytes);
+    return skipAddressValidation(() => new UnsupportedOracle(address, feedIdBytes));
 }
 
 oracleParsers.set(UnsupportedOracle.name, parse);

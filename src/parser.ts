@@ -1,10 +1,11 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import type { Token, TokenDefinition } from "./blueprints/token.js";
-import { HashedBytes, MapBytes, RawBytes, StringBytes, type Bytes } from "./bytes.js";
+import { HashedBytes, MapBytes, RawBytes, StringBytes, validateString, type Bytes } from "./bytes.js";
 import Oracle from "./oracles/Oracle.js";
+import { isAddressValid } from "./utils.js";
 
 export enum TokenType {
-    /** `(?:0|[1-9][0-9]*)(?:\.[0-9]*[1-9])?` or `~(?:0|[1-9][0-9]*)\.[0-9]+` */
+    /** `~?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?` */
     Number,
     Identifier,
     Bytes,
@@ -64,6 +65,11 @@ export class Tokenizer {
         if (c === `"`) {
             const end = input.indexOf(`"`, start + 1);
             if (end === -1) this.fail("Unterminated string", start);
+            try {
+                validateString(input.slice(start + 1, end), "String");
+            } catch (error) {
+                this.fail((error as Error).message, start);
+            }
             return this.token(TokenType.String, end + 1);
         }
 
@@ -104,8 +110,7 @@ export class Tokenizer {
         const start = this.offset;
         let end = start;
 
-        const isApproximation = input.charCodeAt(end) === 126 /* "~" */;
-        if (isApproximation) end++;
+        if (input.charCodeAt(end) === 126 /* "~" */) end++;
 
         const integerStart = end;
         while (end < length && Tokenizer.isDigit(input.charAt(end))) end++;
@@ -122,14 +127,6 @@ export class Tokenizer {
             if (end === fractionStart) {
                 this.fail("Malformed number", start);
             }
-
-            // Exact amounts never have trailing zeros in the fractional part.
-            if (!isApproximation && input.charCodeAt(end - 1) === 48 /* "0" */) {
-                this.fail("Malformed number", start);
-            }
-        } else if (isApproximation) {
-            // Approximate amounts always have a fractional part.
-            this.fail("Malformed number", start);
         }
 
         if (end < length && Tokenizer.isIdentifierChar(input.charAt(end))) {
@@ -196,7 +193,7 @@ export class Tokenizer {
         for (const c of punctuation) {
             const token = this.next();
             if (token.type !== TokenType.Punctuation || token.text !== c) {
-                this.fail(`Expected '${c}', got ${describeToken(token)}`, token.position);
+                this.unexpected(`'${c}'`, token);
             }
         }
     }
@@ -217,14 +214,17 @@ export class Tokenizer {
 export const tokenDefinitionParsers = new Map<string, (tokenizer: Tokenizer) => TokenDefinition>();
 export const oracleParsers = new Map<string, (tokenizer: Tokenizer) => Oracle>();
 
-/**
- * Does not validate checksum.
- */
 export function parseAddress(tokenizer: Tokenizer): string {
     const token = tokenizer.next();
     const address = token.text;
-    if (token.type !== TokenType.Bytes || address.length !== 42) {
+    if (token.type !== TokenType.Bytes) {
         tokenizer.unexpected("address", token);
+    }
+    if (address.length !== 42) {
+        tokenizer.fail("Address must consist of 40 hex digits", token.position);
+    }
+    if (!isAddressValid(address)) {
+        tokenizer.fail("Invalid address checksum", token.position);
     }
 
     return address;

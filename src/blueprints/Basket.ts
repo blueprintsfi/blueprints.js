@@ -29,7 +29,7 @@ function aggregateAmounts(tokens: readonly Token[]): AggregateAmounts {
         } else {
             const amount = result[index]!.weiAmount += token.weiAmount;
             if (amount > UINT256_MAX) {
-                throw new Error("Amount in Basket too large");
+                throw new Error("Accumulated token amount in the Basket is too large");
             }
         }
     }
@@ -61,7 +61,7 @@ export default class Basket extends TokenDefinition {
 
     constructor(tokens: Token[]) {
         if (tokens.length === 0) {
-            throw new Error("There must be at least one token in a basket");
+            throw new Error("There must be at least one token in the basket");
         }
 
         for (const token of tokens) {

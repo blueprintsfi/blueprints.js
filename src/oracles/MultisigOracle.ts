@@ -9,7 +9,7 @@ import {
     parseInteger,
     type Tokenizer,
 } from "../parser.js";
-import { numberToBytesBE, validateAddress } from "../utils.js";
+import { numberToBytesBE, skipAddressValidation, validateAddress } from "../utils.js";
 import Oracle from "./Oracle.js";
 
 export default class MultisigOracle extends Oracle {
@@ -95,7 +95,7 @@ function parse(tokenizer: Tokenizer): MultisigOracle {
     tokenizer.expectPunctuation(", ");
     const feedIdBytes = parseBytes(tokenizer);
     tokenizer.expectPunctuation(">");
-    return new MultisigOracle(addresses, threshold, feedIdBytes);
+    return skipAddressValidation(() => new MultisigOracle(addresses, threshold, feedIdBytes));
 }
 
 oracleParsers.set(MultisigOracle.name, parse);

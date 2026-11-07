@@ -6,7 +6,7 @@ import {
     tokenDefinitionParsers,
     type Tokenizer,
 } from "../parser.js";
-import { validateAddress } from "../utils.js";
+import { skipAddressValidation, validateAddress } from "../utils.js";
 import { TokenDefinition } from "./token.js";
 
 export default class UnsupportedBlueprint extends TokenDefinition {
@@ -48,7 +48,7 @@ function parseUnsupportedBlueprint(tokenizer: Tokenizer): UnsupportedBlueprint {
     const address = parseAddress(tokenizer);
     tokenizer.expectPunctuation(", ");
     const tokenId = parseBytes(tokenizer);
-    return new UnsupportedBlueprint(address, tokenId);
+    return skipAddressValidation(() => new UnsupportedBlueprint(address, tokenId));
 }
 
 tokenDefinitionParsers.set(UnsupportedBlueprint.name, parseUnsupportedBlueprint);

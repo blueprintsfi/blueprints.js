@@ -8,13 +8,24 @@ export const INT256_MAX = (1n << 255n) - 1n;
 
 const textEncoder = new TextEncoder();
 
+let shouldValidateAddresses = true;
+
 export function validateAddress(address: string): void {
-    if (!isAddressValid(address)) {
+    if (shouldValidateAddresses && !isAddressValid(address)) {
         throw new Error("Invalid address");
     }
 }
 
-function isAddressValid(address: string): boolean {
+export function skipAddressValidation<T>(f: () => T): T {
+    shouldValidateAddresses = false;
+    try {
+        return f();
+    } finally {
+        shouldValidateAddresses = true;
+    }
+}
+
+export function isAddressValid(address: string): boolean {
     if (address.length !== 42 || !address.startsWith("0x")) return false;
 
     for (let i = 2; i < 42; i++) {
@@ -156,40 +167,36 @@ export function weiToString(weiAmount: bigint, weiPerUnit: Fraction | bigint): s
     return `${isExact ? "" : "~"}${integer}.${fraction}`;
 }
 
+const REGEX_AMOUNT = /^~?(0|[1-9][0-9]*)(?:\.([0-9]+))?$/;
+
 export function weiFromString(input: string, weiPerUnit: Fraction | bigint): bigint {
     if (typeof weiPerUnit === "bigint") {
         weiPerUnit = new Fraction(weiPerUnit, 1n);
     }
     if (weiPerUnit.numerator <= 0n) throw new Error("Wei per unit must be positive");
 
-    const stripped = input.startsWith("~") ? input.slice(1) : input;
-    const dotIndex = stripped.indexOf(".");
+    const match = input.match(REGEX_AMOUNT);
+    if (match === null) throw new Error("Malformed amount");
+
+    const integer = BigInt(match[1]!);
+    const fractionString = match[2];
 
     let result: bigint;
-    try {
-        if (dotIndex === -1) {
-            const numerator = BigInt(stripped) * weiPerUnit.numerator;
-            if (numerator < 0n || numerator % weiPerUnit.denominator !== 0n) {
-                throw new Error("Fraction must represent a non-negative integer");
-            }
-            result = numerator / weiPerUnit.denominator;
-        } else {
-            const integer = BigInt(stripped.slice(0, dotIndex));
-            const fraction = BigInt(stripped.slice(dotIndex + 1));
-            const scale = 10n ** BigInt(stripped.length - dotIndex - 1);
-            const num = (integer * scale + fraction);
-            const doubledNumerator = 2n * num * weiPerUnit.numerator / (scale * weiPerUnit.denominator);
-            result = doubledNumerator >> 1n;
-            if ((doubledNumerator & 1n) === 1n) {
-                result += 1n;
-            }
+    if (fractionString === undefined) {
+        result = integer * weiPerUnit.numerator / weiPerUnit.denominator;
+    } else {
+        const fraction = BigInt(fractionString);
+        const scale = 10n ** BigInt(fractionString.length);
+        const num = (integer * scale + fraction);
+        const doubledNumerator = 2n * num * weiPerUnit.numerator / (scale * weiPerUnit.denominator);
+        result = doubledNumerator >> 1n;
+        if ((doubledNumerator & 1n) === 1n) {
+            result += 1n;
         }
-    } catch {
-        throw new Error("Invalid fraction");
     }
 
     if (weiToString(result, weiPerUnit) !== input) {
-        throw new Error("Invalid fraction");
+        throw new Error("Unrepresentable token amount or non-canonical amount encoding");
     }
 
     return result;

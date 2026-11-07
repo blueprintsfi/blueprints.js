@@ -6,7 +6,7 @@ import {
     parseInteger,
     tokenDefinitionParsers,
 } from "../parser.js";
-import { validateAddress } from "../utils.js";
+import { skipAddressValidation, validateAddress } from "../utils.js";
 import { TokenDefinition } from "./token.js";
 
 export default class ERC20 extends TokenDefinition {
@@ -54,7 +54,7 @@ function parseERC20(tokenizer: Tokenizer): ERC20 {
     const address = parseAddress(tokenizer);
     tokenizer.expectPunctuation(", ");
     const decimals = parseInteger(tokenizer);
-    return new ERC20(address, decimals);
+    return skipAddressValidation(() => new ERC20(address, decimals));
 }
 
 tokenDefinitionParsers.set(ERC20.name, parseERC20);

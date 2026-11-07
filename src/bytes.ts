@@ -44,7 +44,7 @@ export class RawBytes extends Bytes {
     }
 }
 
-function validateString(value: string, name: string) {
+export function validateString(value: string, name: string) {
     if (!/^[\x20-\x21\x23-\x5b\x5d-\x7e]*$/.test(value)) {
         throw new Error(
             `${name} must consist of spaces and ASCII printable characters excluding '\\' and '\"'`,

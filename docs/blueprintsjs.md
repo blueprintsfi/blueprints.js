@@ -390,11 +390,41 @@ the oracle's parameters and cached.
 ## Bytes
 
 Some blueprints and oracles take bytes as one of their parameters. Often the
-bytes have some special interpretation. For example, a feed id of a
+bytes have some special interpretation. For example, the 32-byte feed id of a
 `MultisigOracle` might be a hash of a string. This should be expressed in the
 oracle's string representation. To achieve this, those blueprints and oracles
 take a `Bytes` object. It is an abstract class that has several subclasses, each
 of them corresponding to a different interpretation.
+
+All `Bytes` objects have the following methods:
+
+- `bytes()`: returns the encoded bytes as a `Uint8Array`. The returned array is
+  a copy, so modifying it does not affect the `Bytes` object.
+- `length()`: returns the length of the encoded bytes. This is often faster than
+  calling `bytes()` and reading the length of the result.
+- `toString()`: returns the string representation of the bytes.
+- `toAst()`: returns the abstract syntax tree of the string representation. An
+  AST can be converted back to a string representation using the `astToString`
+  helper function.
+
+```ts
+import { astToString, HashedBytes, StringBytes } from "@blueprintsfi/blueprints.js";
+import assert from "node:assert";
+
+const string = new StringBytes("feed");
+assert.deepStrictEqual(string.bytes(), new TextEncoder().encode("feed"));
+assert.strictEqual(string.length(), 4);
+assert.strictEqual(string.toString(), `"feed"`);
+
+const hashed = new HashedBytes(string);
+assert.strictEqual(hashed.length(), 32);
+assert.strictEqual(hashed.toString(), `keccak256("feed")`);
+assert.deepStrictEqual(hashed.toAst(), {
+    type: "hashed_bytes",
+    payload: { type: "string_bytes", payload: "feed" },
+});
+assert.strictEqual(astToString(hashed.toAst()), hashed.toString());
+```
 
 ### `RawBytes`
 

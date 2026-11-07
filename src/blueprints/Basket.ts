@@ -37,7 +37,9 @@ function aggregateAmounts(tokens: readonly Token[]): AggregatedAmounts {
 const hasGetOrInsert = "getOrInsert" in Map.prototype;
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
-    if (hasGetOrInsert) return map.getOrInsert(key, value);
+    if (hasGetOrInsert) {
+        (map as Map<K, V> & { getOrInsert(key: K, value: V): V }).getOrInsert(key, value);
+    }
 
     const existing = map.get(key);
     if (existing !== undefined) {

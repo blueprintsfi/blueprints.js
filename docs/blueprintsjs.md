@@ -442,7 +442,10 @@ const oracle = new MultisigOracle(
     1n,
     new RawBytes(feedId), // `new RawBytes(Uint8Array.fromHex(feedId))` also works
 );
-assert.strictEqual(oracle.toString(), "MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, 0xe53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af>");
+assert.strictEqual(
+    oracle.toString(),
+    "MultisigOracle<[0xCA2421bE4AA793c9F95faef57811F4eD360f54e1], 1, 0xe53dcc3bd5f13fc11bfa1907103c388b67d7b6018e4c301aa61b3cdafb1452af>",
+);
 ```
 
 ### `StringBytes`

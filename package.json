@@ -1,6 +1,6 @@
 {
     "name": "@blueprintsfi/blueprints.js",
-    "version": "2.0.0-dev",
+    "version": "2.0.0",
     "description": "Free and open-source TypeScript library for working with Blueprints",
     "keywords": ["defi", "evm"],
     "homepage": "https://blueprints.finance/",

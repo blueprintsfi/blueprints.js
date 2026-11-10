@@ -38,7 +38,7 @@ const hasGetOrInsert = "getOrInsert" in Map.prototype;
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
     if (hasGetOrInsert) {
-        (map as Map<K, V> & { getOrInsert(key: K, value: V): V }).getOrInsert(key, value);
+        return (map as Map<K, V> & { getOrInsert(key: K, value: V): V }).getOrInsert(key, value);
     }
 
     const existing = map.get(key);
@@ -53,7 +53,7 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
 export default class Basket extends TokenDefinition {
     static override name = "Basket";
 
-    tokens: readonly Token[];
+    readonly tokens: readonly Token[];
     private aggregatedAmounts: AggregatedAmounts;
 
     constructor(tokens: Token[]) {

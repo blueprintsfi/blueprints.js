@@ -31,7 +31,7 @@ assert.strictEqual(eth.toString(), "10 NativeToken<18>");
 assert.strictEqual(eth.definition.toString(), "NativeToken<18>");
 ```
 
-## See also
+## See Also
 
 - [Intro](/)
 - [blueprints.js](/blueprintsjs)

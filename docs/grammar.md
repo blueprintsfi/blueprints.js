@@ -757,12 +757,12 @@ second, etc.
 1. Let <var>address</var> be [BlueprintAddress](#blueprintaddress) of this
    [*Token definition*](#def-token-definition).
 1. Let <var>addressBytes</var> be
-   [AddressToBytes](#addresstobytes)(<var>address</var>).
+   [AddressToBytes](#addresstobytesaddress)(<var>address</var>).
 1. Let <var>internalTokenId</var> be [InternalTokenId](#internaltokenid) of this
    [*Token definition*](#def-token-definition).
 1. Let <var>toHash</var> be the concatenation of <var>addressBytes</var> and
    <var>internalTokenId</var>.
-1. Return [keccak256](#keccak256)(<var>toHash</var>).
+1. Return [keccak256](#keccak256arg)(<var>toHash</var>).
 
 <div class="def">
     <div>
@@ -876,8 +876,9 @@ second, etc.
 </div>
 
 1. Let <var>zeros</var> be a sequence of 12 zero bytes.
-1. Let <var>addressBytes</var> be [AddressToBytes](#addresstobytes)(the text
-   matched by [*Address*](#def-address)).
+1. Let <var>addressBytes</var> be
+   [AddressToBytes](#addresstobytesaddress)(the text matched by
+   [*Address*](#def-address)).
 1. Return the concatenation of <var>zeros</var> and <var>addressBytes</var>.
 
 <div class="def">
@@ -902,11 +903,11 @@ second, etc.
    1. Let <var>normalizedAmount</var> be $\frac{\text{\htmlClass{var}
       {value}}}{\text{\htmlClass{var}{gcd}}}$, where <var>value</var> is the
       value of <var>entry</var>.
-   1. Append [UintToBytes](#uinttobytes)(<var>normalizedAmount</var>) to
+   1. Append [UintToBytes](#uinttobytesn)(<var>normalizedAmount</var>) to
       <var>amounts</var>.
 
-1. Return [keccak256](#keccak256)(the concatenation of <var>ids</var> and
-   <var>amounts</var>).
+1. Return [keccak256](#keccak256arg)(the concatenation of <var>ids</var>
+   and <var>amounts</var>).
 
 <div class="def">
     <div>
@@ -922,9 +923,10 @@ second, etc.
 1. Let <var>constraints</var> be [Constraints](#constraints) of [*Constraint
    array*](#def-constraint-array).
 1. Let <var>buffer</var> be the concatenation of
-   [UintToBytes](#uinttobytes)($64$), [ExternalTokenId](#externaltokenid) of
-   [*Token*](#def-token), and [UintToBytes](#uinttobytes)(the number of
-   elements of <var>constraints</var>).
+   [UintToBytes](#uinttobytesn)($64$),
+   [ExternalTokenId](#externaltokenid) of [*Token*](#def-token), and
+   [UintToBytes](#uinttobytesn)(the number of elements of
+   <var>constraints</var>).
 1. For each <var>constraint</var> of <var>constraints</var>, in ascending order
    of [FeedId](#feedid) of <var>constraint</var>:
 
@@ -932,7 +934,7 @@ second, etc.
    1. Append [PayoffHash](#payoffhash) of <var>constraint</var> to
       <var>buffer</var>.
 
-1. Return [keccak256](#keccak256)(<var>buffer</var>).
+1. Return [keccak256](#keccak256arg)(<var>buffer</var>).
 
 <div class="def">
     <div>
@@ -1123,16 +1125,17 @@ the tokens with these ids.
    [*Constraint*](#def-constraint).
 1. Let $c$ be [Scale](#scale) of this [*Constraint*](#def-constraint).
 1. Let <var>buffer</var> be the concatenation of
-   [UintToBytes](#uinttobytes)($32$), [UintToBytes](#uinttobytes)($c \cdot
-   y_0$), [UintToBytes](#uinttobytes)($64$), and
-   [UintToBytes](#uinttobytes)($k$).
+   [UintToBytes](#uinttobytesn)($32$),
+   [UintToBytes](#uinttobytesn)($c \cdot y_0$),
+   [UintToBytes](#uinttobytesn)($64$), and
+   [UintToBytes](#uinttobytesn)($k$).
 1. For each $i$ from $1$ to $k$:
 
-   1. Append [IntToBytes](#inttobytes)($c \cdot s_i$) to <var>buffer</var>.
-   1. Append [UintToBytes](#uinttobytes)($x_i - x_{i - 1}$) to
+   1. Append [IntToBytes](#inttobytesn)($c \cdot s_i$) to <var>buffer</var>.
+   1. Append [UintToBytes](#uinttobytesn)($x_i - x_{i - 1}$) to
       <var>buffer</var>.
 
-1. Return [keccak256](#keccak256)(<var>buffer</var>).
+1. Return [keccak256](#keccak256arg)(<var>buffer</var>).
 
 ### FeedId
 
@@ -1148,11 +1151,11 @@ the tokens with these ids.
 </div>
 
 1. Let <var>addressBytes</var> be
-   [AddressToBytes](#addresstobytes)([OracleAddress](#oracleaddress) of
+   [AddressToBytes](#addresstobytesaddress)([OracleAddress](#oracleaddress) of
    [*Oracle*](#def-oracle)).
 1. Let <var>toHash</var> be the concatenation of <var>addressBytes</var> and
    [FeedId](#feedid) of [*Oracle*](#def-oracle).
-1. Return [keccak256](#keccak256)(<var>toHash</var>).
+1. Return [keccak256](#keccak256arg)(<var>toHash</var>).
 
 Note that this is equal to the feed id of the oracle wrapped in a
 `ConstantOracle`.
@@ -1167,11 +1170,11 @@ Note that this is equal to the feed id of the oracle wrapped in a
 </div>
 
 1. Let <var>addressBytes</var> be
-   [AddressToBytes](#addresstobytes)([OracleAddress](#oracleaddress) of the
-   inner [*Oracle*](#def-oracle)).
+   [AddressToBytes](#addresstobytesaddress)([OracleAddress](#oracleaddress) of
+   the inner [*Oracle*](#def-oracle)).
 1. Let <var>toHash</var> be the concatenation of <var>addressBytes</var> and
    [FeedId](#feedid) of the inner [*Oracle*](#def-oracle).
-1. Return [keccak256](#keccak256)(<var>toHash</var>).
+1. Return [keccak256](#keccak256arg)(<var>toHash</var>).
 
 <div class="def">
     <div>
@@ -1188,18 +1191,19 @@ Note that this is equal to the feed id of the oracle wrapped in a
 
 1. Let <var>threshold</var> be [IntegerValue](#integervalue) of
    [*Integer*](#def-integer).
-1. Let <var>multisig</var> be [UintToBytes](#uinttobytes)(<var>threshold</var>).
+1. Let <var>multisig</var> be
+   [UintToBytes](#uinttobytesn)(<var>threshold</var>).
 1. For each <var>address</var> of [Addresses](#addresses) of [*Address
    array*](#def-address-array):
 
    1. Append a sequence of 12 zero bytes to <var>multisig</var>.
-   1. Append [AddressToBytes](#addresstobytes)(<var>address</var>) to
+   1. Append [AddressToBytes](#addresstobytesaddress)(<var>address</var>) to
       <var>multisig</var>.
 
 1. Let <var>toHash</var> be the concatenation of
-   [keccak256](#keccak256)(<var>multisig</var>) and [Bytes](#bytes) of
+   [keccak256](#keccak256arg)(<var>multisig</var>) and [Bytes](#bytes) of
    [*Bytes*](#def-bytes).
-1. Return [keccak256](#keccak256)(<var>toHash</var>).
+1. Return [keccak256](#keccak256arg)(<var>toHash</var>).
 
 <div class="def">
     <div>
@@ -1398,7 +1402,7 @@ Note that this is equal to the feed id of the oracle wrapped in a
     </div>
 </div>
 
-1. Return [keccak256](#keccak256)([Bytes](#bytes) of the inner
+1. Return [keccak256](#keccak256arg)([Bytes](#bytes) of the inner
    [*Bytes*](#def-bytes)).
 
 ## Additional Errors
@@ -1424,7 +1428,8 @@ uses are well defined.
 
 1. It is an error if [WeiAmount](#weiamount) of this [*Token*](#def-token) is
    greater than or equal to $2^{256}$.
-1. It is an error if [EncodeWeiAmount](#encodeweiamount)([WeiAmount](#weiamount)
+1. It is an error if
+   [EncodeWeiAmount](#encodeweiamountweiamount-weiperunit)([WeiAmount](#weiamount)
    of this [*Token*](#def-token), [WeiPerUnit](#weiperunit) of [*Token
    definition*](#def-token-definition)) is not equal to the text matched by
    [*Token amount*](#def-token-amount).

@@ -54,7 +54,7 @@ assert.strictEqual(
 );
 ```
 
-## See also
+## See Also
 
 - [Intro](/)
 - [blueprints.js](/blueprintsjs)

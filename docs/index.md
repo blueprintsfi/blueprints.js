@@ -24,7 +24,7 @@ As seen in the latter example, the tokens are composable – one position can be
 an argument of another. This allows infinitely intricate positions to be created
 from simple primitives.
 
-## Benefits of using Blueprints
+## Benefits of Using Blueprints
 
 - **Time spent on development.** The vast majority of the products can be built
   using existing primitives, there's no need to develop any smart contracts.
@@ -53,7 +53,7 @@ products built on Blueprints.
 - RPC URL: https://testnet-rpc.blueprints.finance/
 - Faucet: https://testnet-faucet.blueprints.finance/
 
-## Architecture overview
+## Architecture Overview
 
 This section provides an overview of the Blueprints architecture. Consult the
 [smart contracts' source code][core] for details.

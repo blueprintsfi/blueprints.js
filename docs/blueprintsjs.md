@@ -1,11 +1,11 @@
-**blueprints.ts** is a free and open-source TypeScript library for working with
+**blueprints.js** is a free and open-source TypeScript library for working with
 Blueprints. It can be installed from npm.
 
 ```shell
 npm i @blueprintsfi/blueprints.js
 ```
 
-Note that blueprints.ts does not provide functionality for interacting with the
+Note that blueprints.js does not provide functionality for interacting with the
 smart contracts directly.
 
 This page describes the core functionality of the library. Each Blueprint and
@@ -13,12 +13,12 @@ Oracle has its own docs page, where you can learn about its parameters.
 
 ## Fractions
 
-`Fraction` is a helper class which represents a non-negative rational number. It
-has two read-only properties: `numerator` and `denominator`. Both of them are
-bigints. The `numerator` has to be non-negative and the `denominator` has to be
-positive.
+`Fraction` is a helper class which represents a rational number. It has two
+read-only properties: `numerator` and `denominator`. Both of them are bigints.
+The constructor normalizes them, so that `numerator` is non-negative and the
+`denominator` is positive.
 
-## Wei Amounts, Human-readable Amounts
+## Wei Amounts, Human-Readable Amounts
 
 Each token has a wei amount, which is a 256-bit unsigned bigint. It is equal to
 the amount of the token that is stored on chain. However, usually it is not easy

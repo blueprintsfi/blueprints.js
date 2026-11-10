@@ -28,11 +28,10 @@ amount, and a non-empty list of constraints. The `PredictionPoint` and
 `PredictionConstraint` types are exported by the library.
 
 The $i$-th constraint of a `Prediction` token $\text{T}$ consists of an oracle
-$o_i$ and a payoff $f_i$, which is a piecewise linear[^linear], nonnegative
-function. Let $o_i()$ be the value the oracle resolved to (a 256-bit unsigned
-integer). Then the payoff of a `Prediction` token in terms of the collateral
-token is equal to: $$ P = \prod_i f_i(o_i()). $$ The payoff function must not be
-constant.
+$o_i$ and a payoff $f_i$, which is a piecewise linear, nonnegative function. Let
+$o_i()$ be the value the oracle resolved to (a 256-bit unsigned integer). Then
+the payoff of a `Prediction` token in terms of the collateral token is equal to:
+$$ P = \prod_i f_i(o_i()). $$ The payoff function must not be constant.
 
 When the oracle specified in the $i$-th constraint resolves to a value,
 $\text{T}$ can be redeemed for a `Prediction` token with the same parameters but
@@ -371,12 +370,9 @@ const linear2 = new Prediction(collateral, [
 assert.strictEqual(linear.toString(), linear2.toString());
 ```
 
-## See also
+## See Also
 
 - [Intro](/)
 - [MultisigOracle](/oracles/MultisigOracle)
 - [ConstantOracle](/oracles/ConstantOracle)
 - [blueprints.js](/blueprintsjs)
-
-[^linear]: Here a linear function is defined as $\lambda x.ax + b$ for some
-constants $a$ and $b$. The term affine function might be more accurate.

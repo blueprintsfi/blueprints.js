@@ -1,15 +1,9 @@
 {
     "compilerOptions": {
-        "lib": ["ESNext"],
-        "target": "ESNext",
-        "module": "Preserve",
-        "moduleDetection": "force",
-        "jsx": "react-jsx",
-        "allowJs": true,
-        "types": ["bun"],
-
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": true,
+        "lib": ["ES2023", "DOM"],
+        "target": "ES2023",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
         "verbatimModuleSyntax": true,
         "noEmit": true,
 
@@ -17,10 +11,7 @@
         "skipLibCheck": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedIndexedAccess": true,
-        "noImplicitOverride": true,
-
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        "noPropertyAccessFromIndexSignature": false,
+        "noImplicitOverride": true
     },
+    "include": ["src", "test", "docs"]
 }

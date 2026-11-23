@@ -3,8 +3,8 @@ customized financial positions, created by parametrizing existing primitives.
 
 Building DeFi products is divided into three steps:
 1. defining the instrument(s) users will be operating on and implementing them
-2. assuring that users will have liquidity (i.e. counterparties) to enter the
-   desired instruments
+2. assuring that users will have a venue (i.e. counterparties) to enter the
+   desired instruments on, as well as liquidity
 3. creating an interface for users
 
 The Blueprints framework enables near instant completion of the first step.

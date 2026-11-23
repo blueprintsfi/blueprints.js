@@ -1,47 +1,42 @@
 Blueprints is a free and open-source on-chain framework for expressing
 customized financial positions, created by parametrizing existing primitives.
-Examples of tokens include:
-- `NativeToken<18>` – can be minted by depositing the chain's native token (e.g.
-  ETH) and burned to withdraw it,
-- `ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>` – can be minted by
-  depositing ERC20 tokens with the given address and burned to withdraw them,
-- `Prediction<0.05 NativeToken<18>,
-  [(MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf,
-  0x663056E2C695Be0d593271513C6a0794Bc7E6E6F,
-  0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({ "market": "BTC",
-  "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, [(0, 0),
-  (1, 1)])]>` – can be exchanged for `0.05 NativeToken<18>` if at least 2 out of
-  3 signers sign that the specified feed resolves to an integer between 1 and
-  infinity (anything but zero),
-- `WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but
-  the price is down right now" }>` – wraps a position together with arbitrary
-  bytes without changing the underlying token id.
 
-Although positions expressed by these tokens are vastly different, all of them
-share a common interface.
+Building DeFi products is divided into three steps:
+1. defining the instrument(s) users will be operating on and implementing them
+2. assuring that users will have liquidity (i.e. counterparties) to enter the
+   desired instruments
+3. creating an interface for users
 
-As seen in the latter example, the tokens are composable – one position can be
-an argument of another. This allows infinitely intricate positions to be created
-from simple primitives.
+The Blueprints framework enables near instant completion of the first step.
+Because of the architecture, the second is often instantly solved by using
+customizable infrastructure built on top, like [fexchange][fexchange docs].
+Thus, building on Blueprints enables the creators to build a DeFi product just
+by building an interface.
 
 ## Benefits of Using Blueprints
 
+- **Security improvement.** Blueprints are extremely simple and concise and
+  create the right abstractions – so much that mistakes are difficult to make.
+  Builers and users don't have to risk using novel smart contracts.
+- **Future-proofing the product.** The primitives are so generalized that
+  additional features are often readily implementable without the need to
+  migrate to a new set of underlying instruments and while utilizing liquidity
+  of the previous products.
 - **Time spent on development.** The vast majority of the products can be built
   using existing primitives, there's no need to develop any smart contracts.
-- **Money saved on audits.** Auditing smart contracts can be very expensive and
-  time-consuming. Blueprints fix that.
-- **Security improvement.** Blueprints are extremely simple and concise – so
-  much that mistakes are difficult to make. You don't have to risk using novel
-  smart contracts.
-- **User verifiability.** Users can verify their positions instead of trusting
-  new contracts for every new app they're using.
+- **Audits become redundant.** Auditing smart contracts can be very expensive
+  and time-consuming. No new smart contracts means no audits needed.
+- **User verifiability.** Users can verify their proposed positions instead of
+  trusting new contracts for every new app they're using.
 - **Unified liquidity.** Many products use the same positions. On Blueprints,
   they all "talk in the same language", which means that it's possible to
   seamlessly plug in to the ecosystem's liquidity. One user's counterparty can
-  be a user of a different product.
+  be a user of a different product. Products don't have to be built for all
+  sides of the market, only one – the other side can be covered by different
+  products.
 - **Extensibility.** To add your own primitive, you only need to write the code
   that describes the position. Everything else (managing balances, transfers,
-  approvals, etc.) is already handled.
+  approvals, trading infrastructure, etc.) is already handled.
 
 ## Testnet
 
@@ -94,6 +89,32 @@ address is split into $2^{256}$ subaccounts which is oftentimes helpful.
 Blueprint Manager also implements flash accounting – the ability to spend tokens
 one will receive *later in the same transaction*.
 
+### Tokens examples
+
+Examples of tokens include:
+- `NativeToken<18>` – can be minted by depositing the chain's native token (e.g.
+  ETH) and burned to withdraw it,
+- `ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>` – can be minted by
+  depositing ERC20 tokens with the given address and burned to withdraw them,
+- `Prediction<0.05 NativeToken<18>,
+  [(MultisigOracle<[0xD28718f6Ca7398897417eD3aBbD8C2522776E1bf,
+  0x663056E2C695Be0d593271513C6a0794Bc7E6E6F,
+  0xd162c1Ca3357E4F2624BA0cdC57A8e4471502189], 2, keccak256({ "market": "BTC",
+  "condition": "above 100000", "time": "2027-01-01 00:00:00 UTC" })>, [(0, 0),
+  (1, 1)])]>` – can be exchanged for `0.05 NativeToken<18>` if at least 2 out of
+  3 signers sign that the specified feed resolves to an integer between 1 and
+  infinity (anything but zero),
+- `WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but
+  the price is down right now" }>` – wraps a position together with arbitrary
+  bytes without changing the underlying token id.
+
+Although positions expressed by these tokens are vastly different, all of them
+share a common interface.
+
+As seen in the latter example, the tokens are composable – one position can be
+an argument of another. This allows infinitely intricate positions to be created
+from simple primitives.
+
 ### Oracles
 
 An oracle feed is defined by the oracle address and a 256-bit feed id. The
@@ -104,4 +125,5 @@ Oracles shouldn't return different readings for the same feed id, but
 technically there's nothing preventing them from doing so. If consistent
 readings are desired, you can wrap an oracle in a `ConstantOracle`.
 
+[fexchange docs]: https://docs.fexchange.xyz/
 [core]: https://github.com/blueprintsfi/core

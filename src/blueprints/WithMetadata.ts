@@ -1,52 +1,52 @@
 import type { Bytes } from "../bytes.js";
 import {
-    type AstNodeTokenDefinition,
+    type AstNodeToken,
     parseBytes,
-    parseToken,
-    tokenDefinitionParsers,
+    parseTokenWithAmount,
+    tokenParsers,
     type Tokenizer,
 } from "../parser.js";
-import { Token, TokenDefinition } from "./token.js";
+import { Token, TokenWithAmount } from "./token.js";
 
-export default class WithMetadata extends TokenDefinition {
+export default class WithMetadata extends Token {
     static override name = "WithMetadata";
 
-    constructor(readonly token: Token, readonly metadata: Bytes) {
-        if (token.weiAmount === 0n) {
-            throw new Error("Token in WithMetadata must have non-zero amount");
+    constructor(readonly wrapped: TokenWithAmount, readonly metadata: Bytes) {
+        if (wrapped.weiAmount === 0n) {
+            throw new Error("Wrapped token in WithMetadata must have non-zero amount");
         }
 
-        super(token.weiAmount);
+        super(wrapped.weiAmount);
     }
 
     protected override calculateInternalTokenId(): Uint8Array {
-        return this.token.definition.internalTokenId();
+        return this.wrapped.token.internalTokenId();
     }
 
     override blueprintAddress(): string {
-        return this.token.definition.blueprintAddress();
+        return this.wrapped.token.blueprintAddress();
     }
 
     override externalTokenId(): Uint8Array {
-        return this.token.definition.externalTokenId();
+        return this.wrapped.token.externalTokenId();
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: WithMetadata.name,
-                params: [this.token.toAst(), this.metadata.toAst()],
+                params: [this.wrapped.toAst(), this.metadata.toAst()],
             },
         };
     }
 }
 
 function parseWithMetadata(tokenizer: Tokenizer): WithMetadata {
-    const token = parseToken(tokenizer);
+    const wrapped = parseTokenWithAmount(tokenizer);
     tokenizer.expectPunctuation(", ");
     const metadata = parseBytes(tokenizer);
-    return new WithMetadata(token, metadata);
+    return new WithMetadata(wrapped, metadata);
 }
 
-tokenDefinitionParsers.set(WithMetadata.name, parseWithMetadata);
+tokenParsers.set(WithMetadata.name, parseWithMetadata);

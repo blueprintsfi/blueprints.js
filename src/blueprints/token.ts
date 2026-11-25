@@ -1,12 +1,12 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { hexToBytes } from "@noble/hashes/utils.js";
 import {
+    type AstNodeTokenWithAmount,
     type AstNodeToken,
-    type AstNodeTokenDefinition,
     Tokenizer,
     astToString,
+    parseTokenWithAmount,
     parseToken,
-    parseTokenDefinition,
 } from "../parser.js";
 import { Fraction, UINT256_MAX, weiFromString, weiToString } from "../utils.js";
 
@@ -15,7 +15,7 @@ type Cache = {
     externalTokenId: Uint8Array | null;
 };
 
-export abstract class TokenDefinition {
+export abstract class Token {
     private _weiPerUnit: Fraction;
     private cache: Cache = {
         internalTokenId: null,
@@ -37,7 +37,7 @@ export abstract class TokenDefinition {
         return this._weiPerUnit;
     }
 
-    withAmount(amount: Fraction | bigint | string): Token {
+    withAmount(amount: Fraction | bigint | string): TokenWithAmount {
         let weiAmount: bigint;
         if (typeof amount === "string") {
             weiAmount = weiFromString(amount, this._weiPerUnit);
@@ -46,12 +46,12 @@ export abstract class TokenDefinition {
         }
 
         // @ts-ignore
-        return new Token(weiAmount, this);
+        return new TokenWithAmount(weiAmount, this);
     }
 
-    withWeiAmount(amount: bigint): Token {
+    withWeiAmount(amount: bigint): TokenWithAmount {
         // @ts-ignore
-        return new Token(amount, this);
+        return new TokenWithAmount(amount, this);
     }
 
     abstract blueprintAddress(): string;
@@ -75,43 +75,6 @@ export abstract class TokenDefinition {
         return (this.cache.externalTokenId = keccak_256(buffer)).slice();
     }
 
-    static fromString(input: string): TokenDefinition {
-        const tokenizer = new Tokenizer(input);
-        const tokenDefinition = parseTokenDefinition(tokenizer);
-        tokenizer.expectEOF();
-        return tokenDefinition;
-    }
-
-    static tryFromString(input: string): TokenDefinition | null {
-        try {
-            return TokenDefinition.fromString(input);
-        } catch {
-            return null;
-        }
-    }
-
-    abstract toAst(): AstNodeTokenDefinition;
-
-    toString(): string {
-        return astToString(this.toAst());
-    }
-}
-
-export class Token {
-    private constructor(private _weiAmount: bigint, readonly definition: TokenDefinition) {
-        if (_weiAmount < 0n || _weiAmount > UINT256_MAX) {
-            throw new Error("Amount out of range");
-        }
-    }
-
-    get amount(): Fraction {
-        return new Fraction(this._weiAmount, 1n).div(this.definition.weiPerUnit).normalize();
-    }
-
-    get weiAmount() {
-        return this._weiAmount;
-    }
-
     static fromString(input: string): Token {
         const tokenizer = new Tokenizer(input);
         const token = parseToken(tokenizer);
@@ -127,16 +90,53 @@ export class Token {
         }
     }
 
-    amountString(): string {
-        return weiToString(this._weiAmount, this.definition.weiPerUnit);
+    abstract toAst(): AstNodeToken;
+
+    toString(): string {
+        return astToString(this.toAst());
+    }
+}
+
+export class TokenWithAmount {
+    private constructor(private _weiAmount: bigint, readonly token: Token) {
+        if (_weiAmount < 0n || _weiAmount > UINT256_MAX) {
+            throw new Error("Amount out of range");
+        }
     }
 
-    toAst(): AstNodeToken {
+    get amount(): Fraction {
+        return new Fraction(this._weiAmount, 1n).div(this.token.weiPerUnit).normalize();
+    }
+
+    get weiAmount() {
+        return this._weiAmount;
+    }
+
+    static fromString(input: string): TokenWithAmount {
+        const tokenizer = new Tokenizer(input);
+        const token = parseTokenWithAmount(tokenizer);
+        tokenizer.expectEOF();
+        return token;
+    }
+
+    static tryFromString(input: string): TokenWithAmount | null {
+        try {
+            return TokenWithAmount.fromString(input);
+        } catch {
+            return null;
+        }
+    }
+
+    amountString(): string {
+        return weiToString(this._weiAmount, this.token.weiPerUnit);
+    }
+
+    toAst(): AstNodeTokenWithAmount {
         return {
-            type: "token",
+            type: "token_with_amount",
             payload: {
                 amount: this.amountString(),
-                definition: this.definition.toAst(),
+                token: this.token.toAst(),
             },
         };
     }

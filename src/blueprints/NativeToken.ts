@@ -1,14 +1,14 @@
 import {
-    type AstNodeTokenDefinition,
+    type AstNodeToken,
     parseInteger,
-    tokenDefinitionParsers,
+    tokenParsers,
     type Tokenizer,
 } from "../parser.js";
-import { TokenDefinition } from "./token.js";
+import { Token } from "./token.js";
 
 const zero = new Uint8Array(32);
 
-export default class NativeToken extends TokenDefinition {
+export default class NativeToken extends Token {
     static override name = "NativeToken";
 
     constructor(readonly decimals: bigint) {
@@ -31,9 +31,9 @@ export default class NativeToken extends TokenDefinition {
         return "0x98198D50bA4e2ac6624f3659F8e404A3aFE30e71";
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: NativeToken.name,
                 params: [{ type: "integer", payload: this.decimals }],
@@ -47,4 +47,4 @@ function parseNativeToken(tokenizer: Tokenizer): NativeToken {
     return new NativeToken(decimals);
 }
 
-tokenDefinitionParsers.set(NativeToken.name, parseNativeToken);
+tokenParsers.set(NativeToken.name, parseNativeToken);

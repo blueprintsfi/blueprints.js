@@ -1,15 +1,15 @@
 import { hexToBytes } from "@noble/hashes/utils.js";
 import {
-    type AstNodeTokenDefinition,
+    type AstNodeToken,
     type Tokenizer,
     parseAddress,
     parseInteger,
-    tokenDefinitionParsers,
+    tokenParsers,
 } from "../parser.js";
 import { skipAddressValidation, validateAddress } from "../utils.js";
-import { TokenDefinition } from "./token.js";
+import { Token } from "./token.js";
 
-export default class ERC20 extends TokenDefinition {
+export default class ERC20 extends Token {
     static override name = "ERC20";
 
     constructor(readonly address: string, readonly decimals: bigint) {
@@ -36,9 +36,9 @@ export default class ERC20 extends TokenDefinition {
         return "0x563433a6cCBB6c3a8DbC4fb5c4FF56602af25779";
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: ERC20.name,
                 params: [
@@ -57,4 +57,4 @@ function parseERC20(tokenizer: Tokenizer): ERC20 {
     return skipAddressValidation(() => new ERC20(address, decimals));
 }
 
-tokenDefinitionParsers.set(ERC20.name, parseERC20);
+tokenParsers.set(ERC20.name, parseERC20);

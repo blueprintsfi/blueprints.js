@@ -4,9 +4,9 @@ and burned to withdraw it.
 ## Parameters
 
 ```ts
-import { TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Token } from "@blueprintsfi/blueprints.js";
 
-declare class ERC20 extends TokenDefinition {
+declare class ERC20 extends Token {
     readonly address: string;
     readonly decimals: bigint;
     constructor(address: string, decimals: bigint);

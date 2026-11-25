@@ -4,9 +4,9 @@ id are unknown, but the external token id is known.
 ## Parameters
 
 ```ts
-import { Bytes, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Bytes, Token } from "@blueprintsfi/blueprints.js";
 
-declare class UnknownBlueprint extends TokenDefinition {
+declare class UnknownBlueprint extends Token {
     readonly tokenId: Bytes;
     constructor(tokenId: Bytes);
 }

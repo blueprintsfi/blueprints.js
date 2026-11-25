@@ -1,8 +1,8 @@
 This page contains the formal definition of the string representation of tokens
-in the Blueprints ecosystem. It does not define the set of on-chain actions that
-can be performed on them. These are defined by the [smart contracts][core].
-Instead, it defines a set of valid tokens, as well as their external token IDs
-and wei amounts.
+with amounts in the Blueprints ecosystem. It does not define the set of on-chain
+actions that can be performed on them. These are defined by the [smart
+contracts][core]. Instead, it defines a set of valid tokens with amounts, as
+well as their external token IDs and wei amounts.
 
 ## Context-Free Grammar
 
@@ -33,26 +33,26 @@ below is unambiguous, i.e. every word matched by the goal symbol has at most one
 parse tree.
 
 In the grammar below, terminal symbols are printable ASCII characters and the
-goal symbol is [*Token*](#def-token). Non-terminals are written in italics and
-sequences of terminals in a monospace font, where a space denotes the character
-U+0020. Productions with a common left-hand side are listed together, one per
-line. The phrase **one of** means that each of the listed terminals forms a
-separate production.
+goal symbol is [*Token with amount*](#def-token-with-amount). Non-terminals are
+written in italics and sequences of terminals in a monospace font, where a space
+denotes the character U+0020. Productions with a common left-hand side are
+listed together, one per line. The phrase **one of** means that each of the
+listed terminals forms a separate production.
 
-<div class="def" id="def-token">
+<div class="def" id="def-token-with-amount">
     <div>
-        <a href="#def-token"><em>Token</em></a> :
+        <a href="#def-token-with-amount"><em>Token with amount</em></a> :
     </div>
     <div class="prod">
-        <a href="#def-token-amount"><em>Token amount</em></a>
+        <a href="#def-amount"><em>Amount</em></a>
         <code>&nbsp;</code>
-        <a href="#def-token-definition"><em>Token definition</em></a>
+        <a href="#def-token"><em>Token</em></a>
     </div>
 </div>
 
-<div class="def" id="def-token-amount">
+<div class="def" id="def-amount">
     <div>
-        <a href="#def-token-amount"><em>Token amount</em></a> :
+        <a href="#def-amount"><em>Amount</em></a> :
     </div>
     <div class="prod">
         <a href="#def-amount-integer-part"><em>Amount integer part</em></a>
@@ -88,9 +88,9 @@ separate production.
     </div>
 </div>
 
-<div class="def" id="def-token-definition">
+<div class="def" id="def-token">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>NativeToken&lt;</code>
@@ -106,19 +106,19 @@ separate production.
     </div>
     <div class="prod">
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
     <div class="prod">
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
     </div>
     <div class="prod">
         <code>WithMetadata&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-bytes"><em>Bytes</em></a>
         <code>&gt;</code>
@@ -137,29 +137,29 @@ separate production.
     </div>
 </div>
 
-<div class="def" id="def-token-array">
+<div class="def" id="def-token-with-amount-array">
     <div>
-        <a href="#def-token-array"><em>Token array</em></a> :
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a> :
     </div>
     <div class="prod">
         <code>[</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
         <code>]</code>
     </div>
 </div>
 
-<div class="def" id="def-token-array-tail">
+<div class="def" id="def-token-with-amount-array-tail">
     <div>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a> :
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a> :
     </div>
     <div class="prod">
         <span>$\varepsilon$</span>
     </div>
     <div class="prod">
         <code>,&nbsp;</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
     </div>
 </div>
 
@@ -593,21 +593,20 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token"><em>Token</em></a> :
-        <a href="#def-token-amount"><em>Token amount</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a> :
+        <a href="#def-amount"><em>Amount</em></a>
         <code>&nbsp;</code>
-        <a href="#def-token-definition"><em>Token definition</em></a>
+        <a href="#def-token"><em>Token</em></a>
     </div>
 </div>
 
-1. Let <var>amountStr</var> be the text matched by [*Token
-   amount*](#def-token-amount).
+1. Let <var>amountStr</var> be the text matched by [*Amount*](#def-amount).
 1. If <var>amountStr</var> starts with `~`, remove that prefix.
 1. Let <var>amount</var> be <var>amountStr</var> interpreted as a rational
    number written in base-10 with `.` as the separator between the integer and
    fractional parts.
-1. Let <var>weiPerUnit</var> be [WeiPerUnit](#weiperunit) of [*Token
-   definition*](#def-token-definition).
+1. Let <var>weiPerUnit</var> be [WeiPerUnit](#weiperunit) of
+   [*Token*](#def-token).
 1. Return $\left\lfloor \text{\htmlClass{var}{amount}} \cdot
    \text{\htmlClass{var}{weiPerUnit}} + \frac{1}{2} \right\rfloor$.
 
@@ -615,7 +614,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>NativeToken&lt;</code>
@@ -637,30 +636,31 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token
-   array*](#def-token-array).
+1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token with amount
+   array*](#def-token-with-amount-array).
 1. Return the greatest common divisor of the values of all entries of
    <var>map</var>.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. Let <var>result</var> be [WeiAmount](#weiamount) of [*Token*](#def-token).
+1. Let <var>result</var> be [WeiAmount](#weiamount) of
+   [*Token with amount*](#def-token-with-amount).
 1. For each <var>constraint</var> of [Constraints](#constraints) of
    [*Constraint array*](#def-constraint-array):
 
@@ -672,20 +672,21 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>WithMetadata&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-bytes"><em>Bytes</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. Return [WeiAmount](#weiamount) of [*Token*](#def-token).
+1. Return [WeiAmount](#weiamount) of [*Token with
+   amount*](#def-token-with-amount).
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>UnsupportedBlueprint&lt;</code>
@@ -707,19 +708,18 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token"><em>Token</em></a> :
-        <a href="#def-token-amount"><em>Token amount</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a> :
+        <a href="#def-amount"><em>Amount</em></a>
         <code>&nbsp;</code>
-        <a href="#def-token-definition"><em>Token definition</em></a>
+        <a href="#def-token"><em>Token</em></a>
     </div>
 </div>
 
-1. Return [ExternalTokenId](#externaltokenid) of [*Token
-   definition*](#def-token-definition).
+1. Return [ExternalTokenId](#externaltokenid) of [*Token*](#def-token).
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>NativeToken&lt;</code>
@@ -735,12 +735,12 @@ second, etc.
     </div>
     <div class="prod">
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
     <div class="prod">
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
@@ -755,31 +755,32 @@ second, etc.
 </div>
 
 1. Let <var>address</var> be [BlueprintAddress](#blueprintaddress) of this
-   [*Token definition*](#def-token-definition).
+   [*Token*](#def-token).
 1. Let <var>addressBytes</var> be
    [AddressToBytes](#addresstobytesaddress)(<var>address</var>).
 1. Let <var>internalTokenId</var> be [InternalTokenId](#internaltokenid) of this
-   [*Token definition*](#def-token-definition).
+   [*Token*](#def-token).
 1. Let <var>toHash</var> be the concatenation of <var>addressBytes</var> and
    <var>internalTokenId</var>.
 1. Return [keccak256](#keccak256arg)(<var>toHash</var>).
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>WithMetadata&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-bytes"><em>Bytes</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. Return [ExternalTokenId](#externaltokenid) of [*Token*](#def-token).
+1. Return [ExternalTokenId](#externaltokenid) of
+   [*Token with amount*](#def-token-with-amount).
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>UnknownBlueprint&lt;</code>
         <a href="#def-bytes"><em>Bytes</em></a>
         <code>&gt;</code>
@@ -792,7 +793,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>NativeToken&lt;</code>
         <a href="#def-integer"><em>Integer</em></a>
         <code>&gt;</code>
@@ -803,7 +804,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>ERC20&lt;</code>
         <a href="#def-address"><em>Address</em></a>
         <code>,&nbsp;</code>
@@ -816,9 +817,9 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
 </div>
@@ -827,9 +828,9 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
@@ -840,7 +841,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>UnsupportedBlueprint&lt;</code>
         <a href="#def-address"><em>Address</em></a>
         <code>,&nbsp;</code>
@@ -855,7 +856,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>NativeToken&lt;</code>
         <a href="#def-integer"><em>Integer</em></a>
         <code>&gt;</code>
@@ -866,7 +867,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>ERC20&lt;</code>
         <a href="#def-address"><em>Address</em></a>
         <code>,&nbsp;</code>
@@ -883,17 +884,17 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token
-   array*](#def-token-array).
-1. Let <var>gcd</var> be [WeiPerUnit](#weiperunit) of this [*Token
-   definition*](#def-token-definition).
+1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token with amount
+   array*](#def-token-with-amount-array).
+1. Let <var>gcd</var> be [WeiPerUnit](#weiperunit) of this
+   [*Token*](#def-token).
 1. Let <var>ids</var> be the empty sequence.
 1. Let <var>amounts</var> be the empty sequence.
 1. For each entry <var>entry</var> of <var>map</var>, in ascending order of
@@ -911,9 +912,9 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
@@ -924,7 +925,8 @@ second, etc.
    array*](#def-constraint-array).
 1. Let <var>buffer</var> be the concatenation of
    [UintToBytes](#uinttobytesn)($64$),
-   [ExternalTokenId](#externaltokenid) of [*Token*](#def-token), and
+   [ExternalTokenId](#externaltokenid) of [*Token
+   with amount*](#def-token-with-amount), and
    [UintToBytes](#uinttobytesn)(the number of elements of
    <var>constraints</var>).
 1. For each <var>constraint</var> of <var>constraints</var>, in ascending order
@@ -938,7 +940,7 @@ second, etc.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>UnsupportedBlueprint&lt;</code>
         <a href="#def-address"><em>Address</em></a>
         <code>,&nbsp;</code>
@@ -956,29 +958,29 @@ the tokens with these ids.
 
 <div class="def">
     <div>
-        <a href="#def-token-array"><em>Token array</em></a> :
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a> :
         <code>[</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
         <code>]</code>
     </div>
 </div>
 
 <div class="def">
     <div>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a> :
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a> :
         <code>,&nbsp;</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
     </div>
 </div>
 
 1. Let <var>externalTokenId</var> be [ExternalTokenId](#externaltokenid) of
-   [*Token*](#def-token).
+   [*Token with amount*](#def-token-with-amount).
 1. Let <var>weiAmount</var> be [WeiAmount](#weiamount) of
-   [*Token*](#def-token).
-1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token array
-   tail*](#def-token-array-tail).
+   [*Token with amount*](#def-token-with-amount).
+1. Let <var>map</var> be [TokenMap](#tokenmap) of [*Token with amount array
+   tail*](#def-token-with-amount-array-tail).
 1. If <var>map</var> has an entry with key <var>externalTokenId</var>, add
    <var>weiAmount</var> to the value of that entry.
 1. Otherwise, insert a new entry into <var>map</var> with key
@@ -987,7 +989,7 @@ the tokens with these ids.
 
 <div class="def">
     <div>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a> :
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a> :
         <span>$\varepsilon$</span>
     </div>
 </div>
@@ -1407,9 +1409,10 @@ Note that this is equal to the feed id of the oracle wrapped in a
 
 ## Additional Errors
 
-Not every word matched by [*Token*](#def-token) is a valid token. A word is a
-valid token if and only if it is matched by [*Token*](#def-token) and none of
-the rules below applies to any node of its parse tree.
+Not every word matched by [*Token with amount*](#def-token-with-amount) is a
+valid token with amount. A word is a valid token with amount if and only if it
+is matched by [*Token with amount*](#def-token-with-amount) and none of the
+rules below applies to any node of its parse tree.
 
 The rules of a node are only checked if no rule applies to any of its
 descendants, and the rules for a single production are checked in the listed
@@ -1419,24 +1422,24 @@ uses are well defined.
 
 <div class="def">
     <div>
-        <a href="#def-token"><em>Token</em></a> :
-        <a href="#def-token-amount"><em>Token amount</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a> :
+        <a href="#def-amount"><em>Amount</em></a>
         <code>&nbsp;</code>
-        <a href="#def-token-definition"><em>Token definition</em></a>
+        <a href="#def-token"><em>Token</em></a>
     </div>
 </div>
 
-1. It is an error if [WeiAmount](#weiamount) of this [*Token*](#def-token) is
-   greater than or equal to $2^{256}$.
+1. It is an error if [WeiAmount](#weiamount) of this [*Token
+   with amount*](#def-token-with-amount) is greater than or equal to $2^{256}$.
 1. It is an error if
    [EncodeWeiAmount](#encodeweiamountweiamount-weiperunit)([WeiAmount](#weiamount)
-   of this [*Token*](#def-token), [WeiPerUnit](#weiperunit) of [*Token
-   definition*](#def-token-definition)) is not equal to the text matched by
-   [*Token amount*](#def-token-amount).
+   of this [*Token with amount*](#def-token-with-amount),
+   [WeiPerUnit](#weiperunit) of [*Token*](#def-token)) is not equal to the text
+   matched by [*Amount*](#def-amount).
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>NativeToken&lt;</code>
@@ -1457,52 +1460,53 @@ uses are well defined.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Basket&lt;</code>
-        <a href="#def-token-array"><em>Token array</em></a>
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. It is an error if [TokenMap](#tokenmap) of [*Token
-   array*](#def-token-array) has an entry whose value divided by
-   [WeiPerUnit](#weiperunit) of this [*Token
-   definition*](#def-token-definition) is greater than or equal to
-   $2^{256}$.
+1. It is an error if [TokenMap](#tokenmap) of [*Token with amount
+   array*](#def-token-with-amount-array) has an entry whose value divided by
+   [WeiPerUnit](#weiperunit) of this [*Token*](#def-token) is greater than or
+   equal to $2^{256}$.
 
 <div class="def">
     <div>
-        <a href="#def-token-array"><em>Token array</em></a> :
+        <a href="#def-token-with-amount-array"><em>Token with amount array</em></a> :
         <code>[</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
         <code>]</code>
     </div>
 </div>
 
 <div class="def">
     <div>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a> :
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a> :
         <code>,&nbsp;</code>
-        <a href="#def-token"><em>Token</em></a>
-        <a href="#def-token-array-tail"><em>Token array tail</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
+        <a href="#def-token-with-amount-array-tail"><em>Token with amount array tail</em></a>
     </div>
 </div>
 
-1. It is an error if [WeiAmount](#weiamount) of [*Token*](#def-token) is $0$.
+1. It is an error if [WeiAmount](#weiamount) of
+   [*Token with amount*](#def-token-with-amount) is $0$.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
         <code>Prediction&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-constraint-array"><em>Constraint array</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. It is an error if [WeiAmount](#weiamount) of [*Token*](#def-token) is $0$.
+1. It is an error if [WeiAmount](#weiamount) of
+   [*Token with amount*](#def-token-with-amount) is $0$.
 1. It is an error if two distinct elements of [Constraints](#constraints) of
    [*Constraint array*](#def-constraint-array) have equal [FeedId](#feedid).
 
@@ -1554,22 +1558,23 @@ Let $(x_0, y_0), \dots, (x_k, y_k)$ be the elements of [Points](#points) of
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>WithMetadata&lt;</code>
-        <a href="#def-token"><em>Token</em></a>
+        <a href="#def-token-with-amount"><em>Token with amount</em></a>
         <code>,&nbsp;</code>
         <a href="#def-bytes"><em>Bytes</em></a>
         <code>&gt;</code>
     </div>
 </div>
 
-1. It is an error if [WeiAmount](#weiamount) of [*Token*](#def-token) is $0$.
+1. It is an error if [WeiAmount](#weiamount) of
+   [*Token with amount*](#def-token-with-amount) is $0$.
 
 <div class="def">
     <div>
-        <a href="#def-token-definition"><em>Token definition</em></a> :
+        <a href="#def-token"><em>Token</em></a> :
     </div>
     <div class="prod">
         <code>UnsupportedBlueprint&lt;</code>

@@ -1,5 +1,5 @@
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import type { Token, TokenDefinition } from "./blueprints/token.js";
+import type { Token, TokenWithAmount } from "./blueprints/token.js";
 import { HashedBytes, MapBytes, RawBytes, StringBytes, validateString, type Bytes } from "./bytes.js";
 import Oracle from "./oracles/Oracle.js";
 import { isAddressValid } from "./utils.js";
@@ -211,7 +211,7 @@ export class Tokenizer {
     }
 }
 
-export const tokenDefinitionParsers = new Map<string, (tokenizer: Tokenizer) => TokenDefinition>();
+export const tokenParsers = new Map<string, (tokenizer: Tokenizer) => Token>();
 export const oracleParsers = new Map<string, (tokenizer: Tokenizer) => Oracle>();
 
 export function parseAddress(tokenizer: Tokenizer): string {
@@ -230,21 +230,21 @@ export function parseAddress(tokenizer: Tokenizer): string {
     return address;
 }
 
-export function parseToken(tokenizer: Tokenizer): Token {
+export function parseTokenWithAmount(tokenizer: Tokenizer): TokenWithAmount {
     const amount = tokenizer.expect(TokenType.Number);
     tokenizer.expectPunctuation(" ");
 
-    const definition = parseTokenDefinition(tokenizer);
-    return definition.withAmount(amount.text);
+    const token = parseToken(tokenizer);
+    return token.withAmount(amount.text);
 }
 
-export function parseTokenDefinition(tokenizer: Tokenizer): TokenDefinition {
+export function parseToken(tokenizer: Tokenizer): Token {
     const blueprint = tokenizer.next();
     if (blueprint.type !== TokenType.Identifier) {
         tokenizer.unexpected("blueprint name", blueprint);
     }
 
-    const parser = tokenDefinitionParsers.get(blueprint.text);
+    const parser = tokenParsers.get(blueprint.text);
     if (parser === undefined) {
         tokenizer.fail(`Unknown blueprint '${blueprint.text}'`, blueprint.position);
     }
@@ -350,8 +350,8 @@ export type AstNode =
     | AstNodeArray
     | AstNodeTuple
     | AstNodeBytes
+    | AstNodeTokenWithAmount
     | AstNodeToken
-    | AstNodeTokenDefinition
     | AstNodeOracle;
 
 export type AstNodeBytes =
@@ -400,16 +400,16 @@ export type AstNodeHashedBytes = {
     payload: AstNodeBytes;
 };
 
-export type AstNodeToken = {
-    type: "token";
+export type AstNodeTokenWithAmount = {
+    type: "token_with_amount";
     payload: {
         amount: string;
-        definition: AstNodeTokenDefinition;
+        token: AstNodeToken;
     };
 };
 
-export type AstNodeTokenDefinition = {
-    type: "token_definition";
+export type AstNodeToken = {
+    type: "token";
     payload: {
         blueprint: string;
         params: AstNode[];
@@ -462,12 +462,12 @@ export function astToString(node: AstNode): string {
 
         case "hashed_bytes": return `keccak256(${astToString(node.payload)})`;
 
-        case "token": {
-            const { amount, definition } = node.payload;
-            return `${amount} ${astToString(definition)}`;
+        case "token_with_amount": {
+            const { amount, token } = node.payload;
+            return `${amount} ${astToString(token)}`;
         }
 
-        case "token_definition": {
+        case "token": {
             const { blueprint, params } = node.payload;
             return `${blueprint}<${joinParams(params, astToString)}>`;
         }

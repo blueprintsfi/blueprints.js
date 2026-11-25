@@ -1,15 +1,15 @@
 import type { Bytes } from "../bytes.js";
 import {
-    type AstNodeTokenDefinition,
+    type AstNodeToken,
     parseAddress,
     parseBytes,
-    tokenDefinitionParsers,
+    tokenParsers,
     type Tokenizer,
 } from "../parser.js";
 import { skipAddressValidation, validateAddress } from "../utils.js";
-import { TokenDefinition } from "./token.js";
+import { Token } from "./token.js";
 
-export default class UnsupportedBlueprint extends TokenDefinition {
+export default class UnsupportedBlueprint extends Token {
     static override name = "UnsupportedBlueprint";
 
     constructor(readonly address: string, readonly tokenId: Bytes) {
@@ -30,9 +30,9 @@ export default class UnsupportedBlueprint extends TokenDefinition {
         return this.address;
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: UnsupportedBlueprint.name,
                 params: [
@@ -51,4 +51,4 @@ function parseUnsupportedBlueprint(tokenizer: Tokenizer): UnsupportedBlueprint {
     return skipAddressValidation(() => new UnsupportedBlueprint(address, tokenId));
 }
 
-tokenDefinitionParsers.set(UnsupportedBlueprint.name, parseUnsupportedBlueprint);
+tokenParsers.set(UnsupportedBlueprint.name, parseUnsupportedBlueprint);

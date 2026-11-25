@@ -14,7 +14,7 @@ export {
     type PredictionPoint,
     type RangeCondition
 } from "./blueprints/Prediction.js";
-export { Token, TokenDefinition } from "./blueprints/token.js";
+export { Token, TokenWithAmount } from "./blueprints/token.js";
 export { default as UnknownBlueprint } from "./blueprints/UnknownBlueprint.js";
 export { default as UnsupportedBlueprint } from "./blueprints/UnsupportedBlueprint.js";
 export { default as WithMetadata } from "./blueprints/WithMetadata.js";
@@ -24,6 +24,7 @@ export { default as MultisigOracle } from "./oracles/MultisigOracle.js";
 export { default as Oracle } from "./oracles/Oracle.js";
 export { default as UnsupportedOracle } from "./oracles/UnsupportedOracle.js";
 
+export { decompose } from "./decompose.js";
 export { Bytes, HashedBytes, MapBytes, RawBytes, StringBytes } from "./bytes.js";
 export {
     astToString,
@@ -37,8 +38,8 @@ export {
     type AstNodeOracle,
     type AstNodeRawBytes,
     type AstNodeStringBytes,
+    type AstNodeTokenWithAmount,
     type AstNodeToken,
-    type AstNodeTokenDefinition,
     type AstNodeTuple
 } from "./parser.js";
 export { Fraction, addressWithChecksum, weiFromString, weiToString } from "./utils.js";

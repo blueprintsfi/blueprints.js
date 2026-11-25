@@ -1,33 +1,33 @@
 import { keccak_256 } from "@noble/hashes/sha3.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
 import {
-    type AstNodeTokenDefinition,
-    parseToken,
-    tokenDefinitionParsers,
+    type AstNodeToken,
+    parseTokenWithAmount,
+    tokenParsers,
     type Tokenizer,
 } from "../parser.js";
 import { calculateGcd, compareIds, numberToBytesBE, UINT256_MAX } from "../utils.js";
-import { Token, TokenDefinition } from "./token.js";
+import { Token, TokenWithAmount } from "./token.js";
 
 type AggregatedAmounts = {
     tokenId: Uint8Array;
     weiAmount: bigint;
 }[];
 
-function aggregateAmounts(tokens: readonly Token[]): AggregatedAmounts {
+function aggregateAmounts(tokens: readonly TokenWithAmount[]): AggregatedAmounts {
     let result: AggregatedAmounts = [];
     const tokenIdMap = new Map<string, number>();
 
-    for (const token of tokens) {
-        const tokenId = token.definition.externalTokenId();
+    for (const { token, weiAmount } of tokens) {
+        const tokenId = token.externalTokenId();
         const index = getOrInsert(tokenIdMap, bytesToHex(tokenId), result.length);
         if (index === result.length) {
             result.push({
                 tokenId,
-                weiAmount: token.weiAmount,
+                weiAmount,
             });
         } else {
-            result[index]!.weiAmount += token.weiAmount;
+            result[index]!.weiAmount += weiAmount;
         }
     }
 
@@ -50,13 +50,13 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V {
     return value;
 }
 
-export default class Basket extends TokenDefinition {
+export default class Basket extends Token {
     static override name = "Basket";
 
-    readonly tokens: readonly Token[];
+    readonly tokens: readonly TokenWithAmount[];
     private aggregatedAmounts: AggregatedAmounts;
 
-    constructor(tokens: Token[]) {
+    constructor(tokens: TokenWithAmount[]) {
         if (tokens.length === 0) {
             throw new Error("There must be at least one token in the basket");
         }
@@ -106,9 +106,9 @@ export default class Basket extends TokenDefinition {
         return "0xb97dc662E26EE24e6C736E244d57d53610CB236c";
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: Basket.name,
                 params: [{ type: "array", payload: this.tokens.map(token => token.toAst()) }],
@@ -120,9 +120,9 @@ export default class Basket extends TokenDefinition {
 function parseBasket(tokenizer: Tokenizer): Basket {
     tokenizer.expectPunctuation("[");
 
-    const tokens: Token[] = [];
+    const tokens: TokenWithAmount[] = [];
     while (true) {
-        tokens.push(parseToken(tokenizer));
+        tokens.push(parseTokenWithAmount(tokenizer));
         if (tokenizer.consumePunctuation("]")) break;
         tokenizer.expectPunctuation(", ");
     }
@@ -130,4 +130,4 @@ function parseBasket(tokenizer: Tokenizer): Basket {
     return new Basket(tokens);
 }
 
-tokenDefinitionParsers.set(Basket.name, parseBasket);
+tokenParsers.set(Basket.name, parseBasket);

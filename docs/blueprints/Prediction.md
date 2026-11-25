@@ -4,7 +4,7 @@ oracles' responses.
 ## Parameters
 
 ```ts
-import { Oracle, Token, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Oracle, Token, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 
 type PredictionPoint = {
     x: bigint;
@@ -16,10 +16,10 @@ type PredictionConstraint = {
     readonly points: readonly Readonly<PredictionPoint>[];
 };
 
-declare class Prediction extends TokenDefinition {
-    readonly collateral: Token;
+declare class Prediction extends Token {
+    readonly collateral: TokenWithAmount;
     readonly constraints: readonly PredictionConstraint[];
-    constructor(collateral: Token, constraints: readonly PredictionConstraint[]);
+    constructor(collateral: TokenWithAmount, constraints: readonly PredictionConstraint[]);
 }
 ```
 
@@ -137,8 +137,8 @@ by ten thousand.
 
 ## `yesToken()`, `noToken()`
 
-`yesToken` and `noToken` are helper functions for creating `Prediction` token
-definitions with a single oracle, whose response is binary. A `yesToken` pays
+`yesToken` and `noToken` are helper functions for creating `Prediction` tokens
+with a single oracle, whose response is binary. A `yesToken` pays
 out the collateral if the oracle resolves to a value of at least 1, and a
 `noToken` pays it out if the oracle resolves to 0.
 

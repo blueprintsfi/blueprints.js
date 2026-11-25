@@ -3,12 +3,12 @@ import ConstantOracle from "../oracles/ConstantOracle.js";
 import Oracle from "../oracles/Oracle.js";
 import {
     type AstNode,
-    type AstNodeTokenDefinition,
+    type AstNodeToken,
     type Tokenizer,
     parseInteger,
     parseOracle,
-    parseToken,
-    tokenDefinitionParsers,
+    parseTokenWithAmount,
+    tokenParsers,
 } from "../parser.js";
 import {
     Fraction,
@@ -21,7 +21,7 @@ import {
     compareIds,
     numberToBytesBE,
 } from "../utils.js";
-import { Token, TokenDefinition } from "./token.js";
+import { Token, TokenWithAmount } from "./token.js";
 
 export type PredictionPoint = {
     x: bigint;
@@ -158,14 +158,17 @@ function payoffHash(constraint: PredictionConstraint, scale: Fraction): Uint8Arr
     return keccak_256(buffer);
 }
 
-export default class Prediction extends TokenDefinition {
+export default class Prediction extends Token {
     static override name = "Prediction";
     readonly constraints: readonly PredictionConstraint[];
     private feedIds: Uint8Array[];
     private constraintsOrder: number[];
     private scales: Fraction[];
 
-    constructor(readonly collateral: Token, constraints: readonly PredictionConstraint[]) {
+    constructor(
+        readonly collateral: TokenWithAmount,
+        constraints: readonly PredictionConstraint[],
+    ) {
         if (collateral.weiAmount === 0n) {
             throw new Error("Collateral of Prediction must have non-zero amount");
         }
@@ -220,7 +223,7 @@ export default class Prediction extends TokenDefinition {
 
         const buffer = new Uint8Array(0x60 + 0x40 * length);
         buffer.set(numberToBytesBE(0x40n, 0x20));
-        buffer.set(this.collateral.definition.externalTokenId(), 0x20);
+        buffer.set(this.collateral.token.externalTokenId(), 0x20);
         buffer.set(numberToBytesBE(BigInt(length), 0x20), 0x40);
 
         let offset = 0x60;
@@ -241,7 +244,7 @@ export default class Prediction extends TokenDefinition {
         return "0x5F29d59D04585eb7CF38B056474EBfC1d9CF444C";
     }
 
-    override toAst(): AstNodeTokenDefinition {
+    override toAst(): AstNodeToken {
         const constraints: AstNode[] = this.constraints.map(({ oracle, points }) => ({
             type: "tuple",
             payload: [
@@ -260,7 +263,7 @@ export default class Prediction extends TokenDefinition {
         }));
 
         return {
-            type: "token_definition",
+            type: "token",
             payload: {
                 blueprint: Prediction.name,
                 params: [this.collateral.toAst(), { type: "array", payload: constraints }],
@@ -270,7 +273,7 @@ export default class Prediction extends TokenDefinition {
 }
 
 function parsePrediction(tokenizer: Tokenizer): Prediction {
-    const collateral = parseToken(tokenizer);
+    const collateral = parseTokenWithAmount(tokenizer);
     tokenizer.expectPunctuation(", [");
 
     const constraints: PredictionConstraint[] = [];
@@ -303,19 +306,19 @@ function parsePrediction(tokenizer: Tokenizer): Prediction {
     return new Prediction(collateral, constraints);
 }
 
-tokenDefinitionParsers.set(Prediction.name, parsePrediction);
+tokenParsers.set(Prediction.name, parsePrediction);
 
 /**
  * Pays out the collateral if the oracle resolves to a value of at least 1.
  */
-export function yesToken(collateral: Token, oracle: Oracle): Prediction {
+export function yesToken(collateral: TokenWithAmount, oracle: Oracle): Prediction {
     return rangeToken(collateral, oracle, 1n);
 }
 
 /**
  * Pays out the collateral if the oracle resolves to 0.
  */
-export function noToken(collateral: Token, oracle: Oracle): Prediction {
+export function noToken(collateral: TokenWithAmount, oracle: Oracle): Prediction {
     return rangeToken(collateral, oracle, 0n, 1n);
 }
 
@@ -364,7 +367,7 @@ export type ParlayCondition = {
  * least 1 is interpreted as true and 0 as false.
  */
 export function parlayToken(
-    collateral: Token,
+    collateral: TokenWithAmount,
     conditions: readonly Readonly<ParlayCondition>[],
 ): Prediction {
     return new Prediction(collateral, conditions.map(({ oracle, answer }) => {
@@ -381,7 +384,7 @@ export function parlayToken(
  * of 2^256 or undefined means the range is unbounded.
  */
 export function rangeToken(
-    collateral: Token,
+    collateral: TokenWithAmount,
     oracle: Oracle,
     rangeStart: bigint,
     rangeEnd?: bigint,
@@ -394,7 +397,7 @@ export function rangeToken(
  * rangeEnd) range. A `rangeEnd` of 2^256 or undefined means the range is unbounded.
  */
 export function rangeParlayToken(
-    collateral: Token,
+    collateral: TokenWithAmount,
     conditions: readonly Readonly<RangeCondition>[],
 ): Prediction {
     return new Prediction(collateral, conditions.map(rangeConstraint));
@@ -404,7 +407,7 @@ export function rangeParlayToken(
  * Pays out a share of `collateral` that grows linearly with the oracle's response, from nothing at
  * 0 to the full `collateral` at `max` and above.
  */
-export function linearPayoff(collateral: Token, oracle: Oracle, max: bigint): Prediction {
+export function linearPayoff(collateral: TokenWithAmount, oracle: Oracle, max: bigint): Prediction {
     if (max < 1n || max > UINT256_MAX) {
         throw new Error("'max' must be a positive 256-bit unsigned integer");
     }

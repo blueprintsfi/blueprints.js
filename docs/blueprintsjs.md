@@ -20,14 +20,14 @@ The constructor normalizes them, so that `numerator` is non-negative and the
 
 ## Wei Amounts, Human-Readable Amounts
 
-Each token has a wei amount, which is a 256-bit unsigned bigint. It is equal to
-the amount of the token that is stored on chain. However, usually it is not easy
-for humans to work with wei amounts. Therefore, each token definition has a
-**wei per unit**, which is a positive rational number. To calculate a
-human-readable amount of the token, one has to divide its wei amount by wei per
-unit. For example, `10 ERC20<0x0ABb8fFa90597b00a3E1927d78dbaBe23573ED12, 18>`
-represents a token with wei per unit of $10^{18}$. The `10` in this format is
-the human-readable amount. The wei amount of this token is $10^{19}$.
+A wei amount is a 256-bit unsigned bigint. It is equal to the amount of a token
+that is stored on chain. However, usually it is not easy for humans to work with
+wei amounts. Therefore, each token has a **wei per unit**, which is a positive
+rational number. To calculate a human-readable amount of the token, one has to
+divide its wei amount by wei per unit. For example,
+`10 ERC20<0x0ABb8fFa90597b00a3E1927d78dbaBe23573ED12, 18>` represents an amount
+of a token with wei per unit of $10^{18}$. The `10` in this format is the
+human-readable amount. The wei amount is $10^{19}$.
 
 Wei per unit doesn't have to be an integer. Currently, only `Prediction` tokens
 can have non-integer wei per units.
@@ -62,24 +62,24 @@ const two = weiFromString("~0.667", 3n);
 assert.strictEqual(two, 2n);
 ```
 
-## `TokenDefinition`
+## `Token`
 
-The `TokenDefinition` abstract class describes a token. It stores the Blueprint
-which minted it and its parameters.
+The `Token` abstract class describes a token. It stores the Blueprint which
+minted it and its parameters.
 
 ### `fromString()`, `tryFromString()`
 
-The `fromString` static method returns a `TokenDefinition` from its string
-representation. The `tryFromString` static method behaves the same, except that
-it returns `null` instead of throwing an error if the input is invalid.
+The `fromString` static method returns a `Token` from its string representation.
+The `tryFromString` static method behaves the same, except that it returns
+`null` instead of throwing an error if the input is invalid.
 
 ```ts
-import { ERC20, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { ERC20, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20 = TokenDefinition.fromString("ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+const erc20 = Token.fromString("ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
 assert(erc20 instanceof ERC20);
-assert(erc20 instanceof TokenDefinition);
+assert(erc20 instanceof Token);
 
 assert.strictEqual(erc20.address, "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
 assert.strictEqual(erc20.decimals, 18n);
@@ -87,7 +87,7 @@ assert.strictEqual(erc20.decimals, 18n);
 
 ### `toString()`
 
-Returns the token definition's string representation.
+Returns the token's string representation.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
@@ -99,22 +99,19 @@ assert.strictEqual(erc20.toString(), "ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C
 
 ### `toAst()`
 
-Returns the abstract syntax tree of the token definition's string
-representation. See the library's type definitions for details. An AST can be
-converted back to a string representation using the `astToString` helper
-function.
+Returns the abstract syntax tree of the token's string representation. See the
+library's type definitions for details. An AST can be converted back to a string
+representation using the `astToString` helper function.
 
 ```ts
-import { astToString, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { astToString, Token } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = TokenDefinition.fromString(
-    "ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>",
-);
-const ast = erc20Definition.toAst();
+const erc20 = Token.fromString("ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+const ast = erc20.toAst();
 
 assert.deepStrictEqual(ast, {
-    type: "token_definition",
+    type: "token",
     payload: {
         blueprint: "ERC20",
         params: [
@@ -123,7 +120,7 @@ assert.deepStrictEqual(ast, {
         ],
     },
 });
-assert.strictEqual(astToString(ast), erc20Definition.toString());
+assert.strictEqual(astToString(ast), erc20.toString());
 ```
 
 ### `weiPerUnit`
@@ -156,46 +153,46 @@ Returns the checksummed address of the Blueprint that minted this token.
 
 ### `withAmount()`
 
-Attaches an amount to the token and returns a [`Token`](#token). This method
-takes a single argument: the [human-readable
-amount](#wei-amounts-human-readable-amounts). It can be passed as a
-[`Fraction`](#fractions), a `bigint`, or a `string`. If a `string` is passed, it
-must be in the strict format accepted by
+Attaches an amount to the token and returns a
+[`TokenWithAmount`](#tokenwithamount). This method takes a single argument: the
+[human-readable amount](#wei-amounts-human-readable-amounts). It can be passed
+as a [`Fraction`](#fractions), a `bigint`, or a `string`. If a `string` is
+passed, it must be in the strict format accepted by
 [`weiFromString`](#wei-amounts-human-readable-amounts).
 
 ```ts
-import { ERC20, Token } from "@blueprintsfi/blueprints.js";
+import { ERC20, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
 
-const erc20 = erc20Definition.withAmount("15.75");
-assert(erc20 instanceof Token);
-assert.strictEqual(erc20.definition, erc20Definition);
-assert.strictEqual(erc20.weiAmount, 15750000000000000000n);
+const tokenWithAmount = erc20.withAmount("15.75");
+assert(tokenWithAmount instanceof TokenWithAmount);
+assert.strictEqual(tokenWithAmount.token, erc20);
+assert.strictEqual(tokenWithAmount.weiAmount, 15750000000000000000n);
 ```
 
 ### `withWeiAmount()`
 
-Attaches an amount to the token and returns a [`Token`](#token). This method
-takes a single argument: the [wei amount](#wei-amounts-human-readable-amounts)
-as a `bigint`.
+Attaches an amount to the token and returns a
+[`TokenWithAmount`](#tokenwithamount). This method takes a single argument: the
+[wei amount](#wei-amounts-human-readable-amounts) as a `bigint`.
 
 ```ts
-import { ERC20, Token } from "@blueprintsfi/blueprints.js";
+import { ERC20, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
 
-const erc20 = erc20Definition.withWeiAmount(15750000000000000000n);
-assert(erc20 instanceof Token);
-assert.strictEqual(erc20.definition, erc20Definition);
-assert.strictEqual(erc20.amountString(), "15.75");
+const tokenWithAmount = erc20.withWeiAmount(15750000000000000000n);
+assert(tokenWithAmount instanceof TokenWithAmount);
+assert.strictEqual(tokenWithAmount.token, erc20);
+assert.strictEqual(tokenWithAmount.amountString(), "15.75");
 ```
 
-## `Token`
+## `TokenWithAmount`
 
-The `Token` class represents a token definition (with `TokenDefinition`) and its
+The `TokenWithAmount` class represents a [token](#token) together with its
 amount. The only way to obtain an instance of this class is to use the
 [`withAmount()`](#withamount), [`withWeiAmount()`](#withweiamount),
 [`fromString()`](#fromstring-tryfromstring-1), or
@@ -203,56 +200,56 @@ amount. The only way to obtain an instance of this class is to use the
 
 ### `fromString()`, `tryFromString()`
 
-The `fromString` static method returns a `Token` from its string representation.
-The `tryFromString` static method behaves the same, except that it returns
-`null` instead of throwing an error if the input is invalid.
+The `fromString` static method returns a `TokenWithAmount` from its string
+representation. The `tryFromString` static method behaves the same, except that
+it returns `null` instead of throwing an error if the input is invalid.
 
 ```ts
-import { ERC20, Token } from "@blueprintsfi/blueprints.js";
+import { ERC20, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20 = Token.fromString("10 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
-assert(erc20 instanceof Token);
+const tokenWithAmount = TokenWithAmount.fromString("10 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+assert(tokenWithAmount instanceof TokenWithAmount);
 
-assert(erc20.definition instanceof ERC20);
-assert.strictEqual(erc20.definition.address, "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
-assert.strictEqual(erc20.definition.decimals, 18n);
+assert(tokenWithAmount.token instanceof ERC20);
+assert.strictEqual(tokenWithAmount.token.address, "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+assert.strictEqual(tokenWithAmount.token.decimals, 18n);
 
-assert.strictEqual(erc20.weiAmount, 10n * 10n ** 18n);
+assert.strictEqual(tokenWithAmount.weiAmount, 10n * 10n ** 18n);
 ```
 
 ### `toString()`
 
-Returns the token's string representation.
+Returns the string representation of the token with amount.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-const erc20 = erc20Definition.withAmount("15.75");
-assert.strictEqual(erc20.toString(), "15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const tokenWithAmount = erc20.withAmount("15.75");
+assert.strictEqual(tokenWithAmount.toString(), "15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
 ```
 
 ### `toAst()`
 
-Returns the abstract syntax tree of the token's string representation. See the
-library's type definitions for details. An AST can be converted back to a string
-representation using the `astToString` helper function.
+Returns the abstract syntax tree of the string representation of the token with
+amount. See the library's type definitions for details. An AST can be converted
+back to a string representation using the `astToString` helper function.
 
 ```ts
-import { astToString, Token } from "@blueprintsfi/blueprints.js";
+import { astToString, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20 = Token.fromString("15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
-const ast = erc20.toAst();
+const tokenWithAmount = TokenWithAmount.fromString("15.75 ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, 18>");
+const ast = tokenWithAmount.toAst();
 
 assert.deepStrictEqual(ast, {
-    type: "token",
+    type: "token_with_amount",
     payload: {
         amount: "15.75",
-        definition: {
-            type: "token_definition",
+        token: {
+            type: "token",
             payload: {
                 blueprint: "ERC20",
                 params: [
@@ -263,59 +260,58 @@ assert.deepStrictEqual(ast, {
         },
     },
 });
-assert.strictEqual(astToString(ast), erc20.toString());
+assert.strictEqual(astToString(ast), tokenWithAmount.toString());
 ```
 
-### `definition`
+### `token`
 
-The token's [definition](#tokendefinition).
+The [token](#token) this is an amount of.
 
 ### `amount`
 
-Returns the token's [human-readable amount](#wei-amounts-human-readable-amounts)
-as a `Fraction`.
+Returns the [human-readable amount](#wei-amounts-human-readable-amounts) as a
+`Fraction`.
 
 ```ts
 import { ERC20, Fraction } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-const erc20 = erc20Definition.withAmount("15.75");
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const tokenWithAmount = erc20.withAmount("15.75");
 
-assert(erc20.amount instanceof Fraction);
+assert(tokenWithAmount.amount instanceof Fraction);
 // 63 / 4 = 15.75
-assert.strictEqual(erc20.amount.numerator, 63n);
-assert.strictEqual(erc20.amount.denominator, 4n);
+assert.strictEqual(tokenWithAmount.amount.numerator, 63n);
+assert.strictEqual(tokenWithAmount.amount.denominator, 4n);
 ```
 
 ### `weiAmount`
 
-Returns the token's [wei amount](#wei-amounts-human-readable-amounts) as a
-`bigint`.
+Returns the [wei amount](#wei-amounts-human-readable-amounts) as a `bigint`.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-const erc20 = erc20Definition.withAmount("15.75");
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const tokenWithAmount = erc20.withAmount("15.75");
 
-assert.strictEqual(erc20.weiAmount, 1575n * 10n ** 16n);
+assert.strictEqual(tokenWithAmount.weiAmount, 1575n * 10n ** 16n);
 ```
 
 ### `amountString()`
 
 Returns the human-readable amount as a string. It is equivalent to calling
-`weiToString(token.weiAmount, token.definition.weiPerUnit)`.
+`weiToString(tokenWithAmount.weiAmount, tokenWithAmount.token.weiPerUnit)`.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
 import assert from "node:assert";
 
-const erc20Definition = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
-const erc20 = erc20Definition.withWeiAmount(10n ** 19n);
+const erc20 = new ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 18n);
+const tokenWithAmount = erc20.withWeiAmount(10n ** 19n);
 
-assert.strictEqual(erc20.amountString(), "10");
+assert.strictEqual(tokenWithAmount.amountString(), "10");
 ```
 
 ## `Oracle`
@@ -486,14 +482,14 @@ import assert from "node:assert";
 const metadata = new MapBytes([
     ["user_comment", "I know I'm overexposed but the price is down right now"],
 ]);
-const token = new WithMetadata(new NativeToken(18n).withAmount(1n), metadata).withAmount(2n);
+const position = new WithMetadata(new NativeToken(18n).withAmount(1n), metadata).withAmount(2n);
 
 assert.strictEqual(
     metadata.toString(),
     `{ "user_comment": "I know I'm overexposed but the price is down right now" }`,
 );
 assert.strictEqual(
-    token.toString(),
+    position.toString(),
     `2 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but the price is down right now" }>`,
 );
 

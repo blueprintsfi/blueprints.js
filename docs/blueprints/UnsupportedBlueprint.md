@@ -3,9 +3,9 @@
 ## Parameters
 
 ```ts
-import { Bytes, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Bytes, Token } from "@blueprintsfi/blueprints.js";
 
-declare class UnsupportedBlueprint extends TokenDefinition {
+declare class UnsupportedBlueprint extends Token {
     readonly address: string;
     readonly tokenId: Bytes;
     constructor(address: string, tokenId: Bytes);

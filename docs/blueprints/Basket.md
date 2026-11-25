@@ -5,11 +5,11 @@ transferring standard baskets.
 ## Parameters
 
 ```ts
-import { Token, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Token, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 
-declare class Basket extends TokenDefinition {
-    readonly tokens: readonly Token[];
-    constructor(tokens: Token[]);
+declare class Basket extends Token {
+    readonly tokens: readonly TokenWithAmount[];
+    constructor(tokens: TokenWithAmount[]);
 }
 ```
 

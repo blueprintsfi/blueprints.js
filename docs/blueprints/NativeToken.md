@@ -4,9 +4,9 @@ depositing the native token and burned to withdraw it.
 ## Parameters
 
 ```ts
-import { TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Token } from "@blueprintsfi/blueprints.js";
 
-declare class NativeToken extends TokenDefinition {
+declare class NativeToken extends Token {
     readonly decimals: bigint;
     constructor(decimals: bigint);
 }
@@ -28,7 +28,7 @@ import assert from "node:assert";
 const eth = new NativeToken(18n).withAmount(10n);
 
 assert.strictEqual(eth.toString(), "10 NativeToken<18>");
-assert.strictEqual(eth.definition.toString(), "NativeToken<18>");
+assert.strictEqual(eth.token.toString(), "NativeToken<18>");
 ```
 
 ## See Also

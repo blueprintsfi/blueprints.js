@@ -5,12 +5,12 @@ useful when an application wants to store app-specific data about a position.
 ## Parameters
 
 ```ts
-import { Bytes, Token, TokenDefinition } from "@blueprintsfi/blueprints.js";
+import { Bytes, Token, TokenWithAmount } from "@blueprintsfi/blueprints.js";
 
-declare class WithMetadata extends TokenDefinition {
-    readonly token: Token;
+declare class WithMetadata extends Token {
+    readonly wrapped: TokenWithAmount;
     readonly metadata: Bytes;
-    constructor(token: Token, metadata: Bytes);
+    constructor(wrapped: TokenWithAmount, metadata: Bytes);
 }
 ```
 
@@ -38,7 +38,7 @@ assert.strictEqual(
     `2 WithMetadata<1 NativeToken<18>, { "user_comment": "I know I'm overexposed but the price is down right now" }>`,
 );
 assert.strictEqual(
-    position.definition.externalTokenId().toHex(),
+    position.token.externalTokenId().toHex(),
     new NativeToken(18n).externalTokenId().toHex(),
 );
 ```

@@ -2,7 +2,7 @@
 Blueprints. It can be installed from npm.
 
 ```shell
-npm i @blueprintsfi/blueprints.js
+npm i @blueprintsfi/blueprints.js@3
 ```
 
 Note that blueprints.js does not provide functionality for interacting with the

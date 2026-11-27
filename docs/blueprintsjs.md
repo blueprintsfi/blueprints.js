@@ -69,9 +69,9 @@ minted it and its parameters.
 
 ### `fromString()`, `tryFromString()`
 
-The `fromString` static method returns a `Token` from its string representation.
-The `tryFromString` static method behaves the same, except that it returns
-`null` instead of throwing an error if the input is invalid.
+The `fromString` static method returns a `Token` from its formula. The
+`tryFromString` static method behaves the same, except that it returns `null`
+instead of throwing an error if the input is invalid.
 
 ```ts
 import { ERC20, Token } from "@blueprintsfi/blueprints.js";
@@ -87,7 +87,7 @@ assert.strictEqual(erc20.decimals, 18n);
 
 ### `toString()`
 
-Returns the token's string representation.
+Returns the token's formula.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
@@ -99,9 +99,9 @@ assert.strictEqual(erc20.toString(), "ERC20<0xC02aaA39b223FE8D0A0e5C4F27eAD9083C
 
 ### `toAst()`
 
-Returns the abstract syntax tree of the token's string representation. See the
-library's type definitions for details. An AST can be converted back to a string
-representation using the `astToString` helper function.
+Returns the abstract syntax tree of the token's formula. See the library's type
+definitions for details. An AST can be converted back to a formula using the
+`astToString` helper function.
 
 ```ts
 import { astToString, Token } from "@blueprintsfi/blueprints.js";
@@ -220,7 +220,7 @@ assert.strictEqual(tokenWithAmount.weiAmount, 10n * 10n ** 18n);
 
 ### `toString()`
 
-Returns the string representation of the token with amount.
+Returns the formula of the token with amount.
 
 ```ts
 import { ERC20 } from "@blueprintsfi/blueprints.js";
@@ -233,9 +233,9 @@ assert.strictEqual(tokenWithAmount.toString(), "15.75 ERC20<0xC02aaA39b223FE8D0A
 
 ### `toAst()`
 
-Returns the abstract syntax tree of the string representation of the token with
-amount. See the library's type definitions for details. An AST can be converted
-back to a string representation using the `astToString` helper function.
+Returns the abstract syntax tree of the formula of the token with amount. See
+the library's type definitions for details. An AST can be converted back to a
+formula using the `astToString` helper function.
 
 ```ts
 import { astToString, TokenWithAmount } from "@blueprintsfi/blueprints.js";
@@ -343,14 +343,14 @@ assert.strictEqual(oracle.feedId().length, 32);
 
 ### `toString()`
 
-Returns the oracle feed's string representation, which can be parsed using
+Returns the oracle feed's formula, which can be parsed using
 `Oracle.fromString()`.
 
 ### `toAst()`
 
-Returns the abstract syntax tree of the oracle feed's string representation. See
-the library's type definitions for details. An AST can be converted back to a
-string representation using the `astToString` helper function.
+Returns the abstract syntax tree of the oracle feed's formula. See the library's
+type definitions for details. An AST can be converted back to a formula using
+the `astToString` helper function.
 
 ```ts
 import { astToString, Oracle } from "@blueprintsfi/blueprints.js";
@@ -388,9 +388,9 @@ the oracle's parameters and cached.
 Some blueprints and oracles take bytes as one of their parameters. Often the
 bytes have some special interpretation. For example, the 32-byte feed id of a
 `MultisigOracle` might be a hash of a string. This should be expressed in the
-oracle's string representation. To achieve this, those blueprints and oracles
-take a `Bytes` object. It is an abstract class that has several subclasses, each
-of them corresponding to a different interpretation.
+oracle's formula. To achieve this, those blueprints and oracles take a `Bytes`
+object. It is an abstract class that has several subclasses, each of them
+corresponding to a different interpretation.
 
 All `Bytes` objects have the following methods:
 
@@ -398,10 +398,9 @@ All `Bytes` objects have the following methods:
   a copy, so modifying it does not affect the `Bytes` object.
 - `length()`: returns the length of the encoded bytes. This is often faster than
   calling `bytes()` and reading the length of the result.
-- `toString()`: returns the string representation of the bytes.
-- `toAst()`: returns the abstract syntax tree of the string representation. An
-  AST can be converted back to a string representation using the `astToString`
-  helper function.
+- `toString()`: returns the formula of the bytes.
+- `toAst()`: returns the abstract syntax tree of the formula. An AST can be
+  converted back to a formula using the `astToString` helper function.
 
 ```ts
 import { astToString, HashedBytes, StringBytes } from "@blueprintsfi/blueprints.js";

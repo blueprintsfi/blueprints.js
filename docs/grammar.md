@@ -1,8 +1,8 @@
-This page contains the formal definition of the string representation of tokens
-with amounts in the Blueprints ecosystem. It does not define the set of on-chain
-actions that can be performed on them. These are defined by the [smart
-contracts][core]. Instead, it defines a set of valid tokens with amounts, as
-well as their external token IDs and wei amounts.
+This page contains the formal definition of the formulas of tokens with amounts
+in the Blueprints ecosystem. It does not define the set of on-chain actions that
+can be performed on them. These are defined by the [smart contracts][core].
+Instead, it defines a set of valid tokens with amounts, as well as their
+external token IDs and wei amounts.
 
 ## Context-Free Grammar
 

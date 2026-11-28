@@ -62,9 +62,6 @@ special kinds of `Prediction` tokens:
   linearly with the oracle's response, from nothing at 0 to the full
   `collateral` at `max` and above.
 
-For more information on this model, see [Multiverse
-Finance](https://www.paradigm.xyz/2025/05/multiverse-finance).
-
 ## Encoding Functions
 
 ###### In the Library
